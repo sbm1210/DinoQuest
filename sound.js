@@ -7,9 +7,11 @@
 
 window.DINO_FX = (function () {
   let ctx = null;
-  let muted = false;
+  let muted = true;
   let noiseBuf = null;
   let distortCurve = null;
+  let masterComp = null;
+  let masterGain = null;
 
   function setMuted(m) { muted = !!m; }
   function isMuted() { return muted; }
@@ -57,17 +59,19 @@ window.DINO_FX = (function () {
   }
 
   function createMasterOut(c, gainVal = 0.72) {
-    const comp = c.createDynamicsCompressor();
-    comp.threshold.value = -14;
-    comp.knee.value = 18;
-    comp.ratio.value = 6;
-    comp.attack.value = 0.006;
-    comp.release.value = 0.2;
-    const g = c.createGain();
-    g.gain.value = gainVal;
-    comp.connect(g);
-    g.connect(c.destination);
-    return comp;
+    if (!masterComp || masterComp.context !== c) {
+      masterComp = c.createDynamicsCompressor();
+      masterComp.threshold.value = -14;
+      masterComp.knee.value = 18;
+      masterComp.ratio.value = 6;
+      masterComp.attack.value = 0.006;
+      masterComp.release.value = 0.2;
+      masterGain = c.createGain();
+      masterComp.connect(masterGain);
+      masterGain.connect(c.destination);
+    }
+    masterGain.gain.setValueAtTime(gainVal, c.currentTime);
+    return masterComp;
   }
 
   // Helper: textured organic vocal layer (oscillator + vocal-fold FM flutter + formant bandpass + waveshaper)
@@ -259,6 +263,36 @@ window.DINO_FX = (function () {
     }
   }
 
+  /* ---- 4 Weekly Raid Boss Vocalizations & Battle Impact SFX ---- */
+  function playBossCall(bossId) {
+    const c = ensureCtx();
+    if (!c) return;
+    const out = createMasterOut(c, 0.8);
+    switch (bossId) {
+      case "meteor_golem":
+        vocalLayer(c, out, { type: "sawtooth", f0: 42, fMid: 60, fEnd: 32, dur: 1.15, midAt: 0.3, growlRate: 14, growlDepth: 8, drive: 62, filterType: "lowpass", cut0: 210, cutMid: 480, cutEnd: 140, Q: 2.4, gain: 0.46, attack: 0.08 });
+        breathLayer(c, out, { dur: 1.1, delay: 0.04, filterType: "bandpass", cut0: 520, cutEnd: 180, Q: 1.6, gain: 0.34, attack: 0.08 });
+        break;
+      case "shadow_rex":
+        vocalLayer(c, out, { type: "sawtooth", f0: 48, fMid: 74, fEnd: 36, dur: 1.25, midAt: 0.28, growlRate: 28, growlRateEnd: 12, growlDepth: 15, drive: 74, filterType: "lowpass", cut0: 300, cutMid: 920, cutEnd: 180, Q: 3.0, gain: 0.44, attack: 0.06 });
+        vocalLayer(c, out, { type: "square", f0: 210, fMid: 340, fEnd: 118, dur: 1.05, delay: 0.05, growlRate: 40, growlDepth: 32, drive: 48, filterType: "bandpass", cut0: 680, cutMid: 1320, cutEnd: 380, Q: 3.2, gain: 0.22, attack: 0.06 });
+        breathLayer(c, out, { dur: 1.15, delay: 0.03, filterType: "bandpass", cut0: 1100, cutEnd: 300, Q: 1.5, gain: 0.3, attack: 0.08 });
+        break;
+      case "frost_titan":
+        vocalLayer(c, out, { type: "sawtooth", f0: 58, fMid: 96, fEnd: 46, dur: 1.3, midAt: 0.4, growlRate: 9, growlDepth: 6, drive: 30, filterType: "lowpass", cut0: 260, cutMid: 520, cutEnd: 150, Q: 3.6, gain: 0.4, attack: 0.14 });
+        breathLayer(c, out, { dur: 1.2, delay: 0.06, filterType: "highpass", cut0: 2200, cutEnd: 1200, Q: 1.8, gain: 0.2, attack: 0.1 });
+        note(1320, 0.08, 0.36, "sine", 0.09, 1760);
+        break;
+      case "mecha_rex":
+        vocalLayer(c, out, { type: "square", f0: 78, fMid: 142, fEnd: 54, dur: 1.0, midAt: 0.3, growlRate: 46, growlDepth: 28, drive: 58, filterType: "bandpass", cut0: 480, cutMid: 1400, cutEnd: 320, Q: 3.4, gain: 0.34, attack: 0.04 });
+        note(880, 0.0, 0.07, "square", 0.08, 1240);
+        note(1240, 0.07, 0.09, "square", 0.08, 660);
+        break;
+      default:
+        playDinoCall("trex");
+    }
+  }
+
   /* ---- Crisp UI & Reward SFX ---- */
   function note(freq, start, dur, type = "triangle", gainPeak = 0.16, slideTo = null) {
     const c = ensureCtx();
@@ -321,6 +355,46 @@ window.DINO_FX = (function () {
     roar(dinoId) {
       playDinoCall(dinoId || "trex");
     },
+    bossRoar(bossId) {
+      playBossCall(bossId || "meteor_golem");
+    },
+    bossHit(isCrit) {
+      const c = ensureCtx();
+      if (!c) return;
+      const out = createMasterOut(c, 0.8);
+      // Energy slash whoosh
+      breathLayer(c, out, { dur: 0.18, delay: 0, filterType: "bandpass", cut0: 2400, cutEnd: 460, Q: 2.2, gain: 0.32, attack: 0.015 });
+      // Heavy impact punch
+      note(isCrit ? 190 : 150, 0.07, isCrit ? 0.28 : 0.2, "sawtooth", isCrit ? 0.24 : 0.18, 42);
+      note(isCrit ? 980 : 720, 0.07, 0.14, "triangle", 0.14, 240);
+      if (isCrit) {
+        // Extra critical impact burst & chime
+        note(240, 0.15, 0.26, "sawtooth", 0.2, 48);
+        note(1046.5, 0.12, 0.18, "triangle", 0.14);
+        note(1318.5, 0.2, 0.24, "sine", 0.15);
+      }
+    },
+    bossDefeat() {
+      const c = ensureCtx();
+      if (!c) return;
+      const out = createMasterOut(c, 0.82);
+      // Boss shatter boom
+      vocalLayer(c, out, { type: "sawtooth", f0: 110, fMid: 58, fEnd: 28, dur: 0.65, drive: 65, filterType: "lowpass", cut0: 620, cutEnd: 110, Q: 2.0, gain: 0.42, attack: 0.02 });
+      breathLayer(c, out, { dur: 0.55, delay: 0.02, filterType: "bandpass", cut0: 1500, cutEnd: 240, Q: 1.4, gain: 0.36, attack: 0.02 });
+      // Triumphant RPG boss-slay fanfare
+      const seq = [
+        [523.25, 0.36, 0.12],
+        [659.25, 0.46, 0.12],
+        [783.99, 0.56, 0.12],
+        [1046.5, 0.68, 0.24],
+        [987.77, 0.90, 0.12],
+        [1046.5, 1.02, 0.55]
+      ];
+      seq.forEach(([f, s, d]) => {
+        note(f, s, d, "triangle", 0.18);
+        note(f * 0.5, s, d, "sine", 0.1);
+      });
+    },
     timerDone() {
       note(659.25, 0, 0.16, "triangle", 0.16);
       note(783.99, 0.18, 0.16, "triangle", 0.16);
@@ -328,6 +402,40 @@ window.DINO_FX = (function () {
     },
     error() {
       note(220, 0, 0.12, "sawtooth", 0.09, 170);
+    },
+    digChip(layer = 2) {
+      const c = ensureCtx();
+      if (!c) return;
+      const out = createMasterOut(c, 0.72);
+      if (layer >= 2) {
+        // Sandy brush crunch
+        breathLayer(c, out, { dur: 0.12, delay: 0, filterType: "bandpass", cut0: 1800, cutEnd: 950, Q: 1.6, gain: 0.24, attack: 0.01 });
+        note(340, 0, 0.07, "triangle", 0.1, 210);
+      } else {
+        // Rocky pickaxe clink
+        breathLayer(c, out, { dur: 0.14, delay: 0, filterType: "bandpass", cut0: 1200, cutEnd: 420, Q: 2.0, gain: 0.28, attack: 0.01 });
+        note(520, 0, 0.08, "square", 0.08, 280);
+        note(880, 0.02, 0.07, "sine", 0.09, 640);
+      }
+    },
+    digSparkle() {
+      note(880, 0, 0.09, "triangle", 0.13);
+      note(1174.66, 0.07, 0.12, "triangle", 0.14);
+      note(1567.98, 0.14, 0.24, "sine", 0.14);
+    },
+    museumComplete() {
+      const seq = [
+        [440, 0.0, 0.12],
+        [554.37, 0.1, 0.12],
+        [659.25, 0.2, 0.14],
+        [880, 0.32, 0.28],
+        [1108.73, 0.48, 0.18],
+        [1318.51, 0.62, 0.55]
+      ];
+      seq.forEach(([f, s, d]) => {
+        note(f, s, d, "triangle", 0.17);
+        note(f * 0.5, s, d, "sine", 0.08);
+      });
     }
   };
 
@@ -389,17 +497,22 @@ window.DINO_FX = (function () {
 
   function loop() {
     if (!c2d || !canvas) return;
-    c2d.clearRect(0, 0, window.innerWidth, window.innerHeight);
-    particles = particles.filter(p => p.alpha > 0.03 && p.y < window.innerHeight + 40);
-    for (const p of particles) {
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    c2d.clearRect(0, 0, vw, vh);
+    let writeIdx = 0;
+    for (let i = 0, len = particles.length; i < len; i++) {
+      const p = particles[i];
       p.x += p.vx;
       p.y += p.vy;
       p.vy += p.gravity;
       p.vx *= 0.985;
       p.rot += p.vrot;
       p.alpha -= 0.012;
+      if (p.alpha <= 0.03 || p.y >= vh + 40) continue;
+      particles[writeIdx++] = p;
       c2d.save();
-      c2d.globalAlpha = Math.max(0, p.alpha);
+      c2d.globalAlpha = p.alpha;
       c2d.translate(p.x, p.y);
       c2d.rotate(p.rot);
       c2d.fillStyle = p.color;
@@ -412,10 +525,11 @@ window.DINO_FX = (function () {
       }
       c2d.restore();
     }
-    if (particles.length > 0) {
+    particles.length = writeIdx;
+    if (writeIdx > 0) {
       rafId = requestAnimationFrame(loop);
     } else {
-      c2d.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      c2d.clearRect(0, 0, vw, vh);
       rafId = null;
     }
   }
@@ -431,38 +545,50 @@ window.DINO_FX = (function () {
     const tx = tr.left + tr.width / 2;
     const ty = tr.top + tr.height / 2;
 
+    const frag = document.createDocumentFragment();
     if (amountText) {
       const pop = document.createElement("div");
       pop.className = "dq-float-score";
       pop.textContent = amountText;
       pop.style.left = sx + "px";
       pop.style.top = sy + "px";
-      document.body.appendChild(pop);
+      frag.appendChild(pop);
       setTimeout(() => pop.remove(), 1100);
     }
 
+    const coinMarkup = window.DINO_DATA.coinSVG(26);
+    const coins = [];
     for (let i = 0; i < count; i++) {
       const el = document.createElement("div");
       el.className = "dq-fly-coin";
-      el.innerHTML = window.DINO_DATA.coinSVG(26);
+      el.innerHTML = coinMarkup;
       const jitterX = (Math.random() - 0.5) * 44;
       const jitterY = (Math.random() - 0.5) * 28;
-      el.style.left = sx + jitterX + "px";
-      el.style.top = sy + jitterY + "px";
-      document.body.appendChild(el);
-      const delay = i * 55;
+      const x0 = sx + jitterX;
+      const y0 = sy + jitterY;
+      el.style.left = x0 + "px";
+      el.style.top = y0 + "px";
+      frag.appendChild(el);
+      coins.push({ el, dx: tx - x0, dy: ty - y0, delay: i * 55 });
+    }
+    document.body.appendChild(frag);
+
+    for (let i = 0; i < coins.length; i++) {
+      const { el, dx, dy, delay } = coins[i];
       setTimeout(() => {
-        el.style.transform = `translate(${tx - (sx + jitterX)}px, ${ty - (sy + jitterY)}px) scale(0.75)`;
+        el.style.transform = `translate(${dx}px, ${dy}px) scale(0.75)`;
         el.style.opacity = "0.2";
-      }, 30 + delay);
+      }, 24 + delay);
       setTimeout(() => {
         el.remove();
-        if (i === count - 1) {
-          wallet.classList.remove("bump");
-          void wallet.offsetWidth;
-          wallet.classList.add("bump");
+        if (i === coins.length - 1) {
+          const wEl = document.getElementById("dq-wallet-pill");
+          if (wEl) {
+            wEl.classList.remove("bump");
+            requestAnimationFrame(() => wEl.classList.add("bump"));
+          }
         }
-      }, 680 + delay);
+      }, 660 + delay);
     }
   }
 
