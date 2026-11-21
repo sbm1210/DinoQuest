@@ -8,11 +8,21 @@
   "use strict";
 
   const STORAGE_KEY = "dino_quest_v1";
+  const DEV_UNLOCK_ALL = true; // 개발 테스트 모드: 모든 공룡(12종) + 모든 장비(18종) 즉시 선택 가능
+  window.DQ_DEV_UNLOCK_ALL = DEV_UNLOCK_ALL;
   const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
   const WEEKDAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // 월~일 표시용
 
   const { DINOS, CATEGORIES, SHOP_ICONS, renderDinoArt, coinSVG, eggSVG, pawSVG, chestSVG, getDino, getCategory } = window.DINO_DATA;
+  const GEAR = window.DINO_GEAR;
   const { sfx, setMuted, burstConfetti, megaCelebration, flyCoins } = window.DINO_FX;
+
+  function isDinoUnlocked(did, s = state) {
+    return DEV_UNLOCK_ALL || (Array.isArray(s.unlockedDinos) && s.unlockedDinos.includes(did));
+  }
+  function getUnlockedDinoCount(s = state) {
+    return DEV_UNLOCK_ALL ? DINOS.length : (Array.isArray(s.unlockedDinos) ? s.unlockedDinos.length : 1);
+  }
 
   /* ---- Storage availability check (like Notch) ---- */
   let STORAGE_OK = true;
@@ -124,6 +134,9 @@
       pendingEggs: 0,
       unlockedDinos: ["trex"],
       partnerDino: "trex",
+      equippedGear: { head: "hat_explorer", face: null, back: null, aura: null },
+      bonusGear: [],
+      seenGear: ["hat_explorer"],
       templates: [
         { id: "tpl_math", title: "수학 연산 2장 풀기", detail: "풀고 나서 채점 받기!", category: "math", coins: 10, timerMin: 0, days: [1, 2, 3, 4, 5] },
         { id: "tpl_read", title: "책 읽기 20분", detail: "집중 타이머 켜고 재미있게 읽기", category: "read", coins: 10, timerMin: 20, days: [0, 1, 2, 3, 4, 5, 6] },
@@ -169,7 +182,10 @@
       settings: { ...def.settings, ...(p.settings || {}) }
     };
     if (!Array.isArray(s.unlockedDinos) || s.unlockedDinos.length === 0) s.unlockedDinos = ["trex"];
-    if (!s.unlockedDinos.includes(s.partnerDino)) s.partnerDino = s.unlockedDinos[0];
+    const validDinoIds = new Set(DINOS.map(d => d.id));
+    if (!validDinoIds.has(s.partnerDino) || (!DEV_UNLOCK_ALL && !s.unlockedDinos.includes(s.partnerDino))) {
+      s.partnerDino = s.unlockedDinos[0];
+    }
     if (!Array.isArray(s.templates)) s.templates = def.templates;
     if (!Array.isArray(s.bossTemplates)) s.bossTemplates = def.bossTemplates;
     if (!Array.isArray(s.shopItems)) s.shopItems = def.shopItems;
@@ -181,6 +197,18 @@
     if (!Array.isArray(s.claimedAchievements)) s.claimedAchievements = [];
     if (!Array.isArray(s.redeemHistory)) s.redeemHistory = [];
     if (!Array.isArray(s.coinHistory)) s.coinHistory = [];
+    if (!s.equippedGear || typeof s.equippedGear !== "object") {
+      s.equippedGear = { head: "hat_explorer", face: null, back: null, aura: null };
+    }
+    if (GEAR) {
+      for (const sl of ["head", "face", "back", "aura"]) {
+        if (s.equippedGear[sl] && !GEAR.getItem(s.equippedGear[sl])) s.equippedGear[sl] = null;
+      }
+    }
+    if (!Array.isArray(s.bonusGear)) s.bonusGear = [];
+    if (GEAR) s.bonusGear = s.bonusGear.filter(id => Boolean(GEAR.getItem(id)));
+    if (!Array.isArray(s.seenGear)) s.seenGear = ["hat_explorer"];
+    if (GEAR) s.seenGear = s.seenGear.filter(id => Boolean(GEAR.getItem(id)));
     if (!s.dayOverrides || typeof s.dayOverrides !== "object") s.dayOverrides = {};
     if (!s.dayLogs || typeof s.dayLogs !== "object") s.dayLogs = {};
     if (!s.bossLogs || typeof s.bossLogs !== "object") s.bossLogs = {};
@@ -203,11 +231,13 @@
   /* ---- UI Transient State ---- */
   const ui = {
     tab: "quests",           // quests | shop | dinos
-    dinoSubTab: "collection", // collection | achievements
+    dinoSubTab: "wardrobe",  // wardrobe | collection | achievements
+    gearSlot: "all",         // all | head | face | back | aura
     selectedDate: todayStr(),
     calYear: new Date().getFullYear(),
     calMonth: new Date().getMonth(), // 0..11
-    dinoHappy: false,
+    dinoMood: "idle",        // idle | roar | jump
+    dinoMoodTimer: null,
     dinoSpeechOverride: "",
 
     // Modals
@@ -437,15 +467,38 @@
     el.textContent = ui.toast;
   }
 
-  function triggerDinoHappy(customMsg) {
-    ui.dinoHappy = true;
+  function getNewGearIds() {
+    if (!GEAR || DEV_UNLOCK_ALL) return [];
+    const streak = computeStreak(state);
+    const unlocked = GEAR.getUnlockedGearIds(state, streak);
+    const seen = new Set(state.seenGear || []);
+    return unlocked.filter(id => !seen.has(id));
+  }
+
+  function markGearSeen() {
+    if (!GEAR) return;
+    const streak = computeStreak(state);
+    state.seenGear = GEAR.getUnlockedGearIds(state, streak);
+    saveState();
+  }
+
+  function triggerDinoMood(mood, customMsg) {
+    ui.dinoMood = mood || "jump";
     if (customMsg) ui.dinoSpeechOverride = customMsg;
-    setTimeout(() => {
-      ui.dinoHappy = false;
+    if (ui.dinoMoodTimer) clearTimeout(ui.dinoMoodTimer);
+    ui.dinoMoodTimer = setTimeout(() => {
+      ui.dinoMood = "idle";
       ui.dinoSpeechOverride = "";
+      document.querySelectorAll(".sd-dino-svg.is-roaring, .sd-dino-svg.is-jumping, .sd-sprite-stage.is-roaring, .sd-sprite-stage.is-jumping").forEach(el => {
+        el.classList.remove("is-roaring", "is-jumping");
+      });
       const av = document.querySelector(".dq-partner-avatar");
-      if (av) av.classList.remove("happy");
-    }, 2600);
+      if (av) av.classList.remove("happy", "roaring");
+    }, mood === "roar" ? 1300 : 1400);
+  }
+
+  function triggerDinoHappy(customMsg) {
+    triggerDinoMood("jump", customMsg);
   }
 
   /* ---- Kid Actions ---- */
@@ -865,7 +918,8 @@
     const streak = computeStreak(state);
     const waitingCount = getAllWaitingItems().length;
     const achClaimable = getClaimableAchievementsCount();
-    const dinoNotify = state.pendingEggs + achClaimable;
+    const newGearCount = getNewGearIds().length;
+    const dinoNotify = state.pendingEggs + achClaimable + newGearCount;
     const rank = getRankInfo(state.totalQuestsClaimed);
 
     return `
@@ -891,7 +945,7 @@
             🎁 선물 상점
           </button>
           <button class="dq-nav-btn ${ui.tab === "dinos" ? "on" : ""}" data-act="nav" data-val="dinos">
-            🦕 공룡 도감
+            🦕 공룡 · 장비
             ${dinoNotify > 0 ? `<span class="dq-dot-badge">${dinoNotify}</span>` : ""}
           </button>
         </nav>
@@ -945,11 +999,14 @@
       speechHtml = esc(partner.cheer[0]);
     }
 
+    const newGearCnt = getNewGearIds().length;
+    const avatarCls = ui.dinoMood === "roar" ? "roaring" : ui.dinoMood === "jump" ? "happy" : "";
+
     return `
       <section class="dq-card dq-partner-card">
         <div class="dq-partner-top">
-          <div class="dq-partner-avatar ${ui.dinoHappy ? "happy" : ""}" data-act="pet-dino" title="눌러서 공룡 울음소리 듣기!">
-            ${renderDinoArt(partner, true)}
+          <div class="dq-partner-avatar ${avatarCls}" data-act="pet-dino" title="눌러서 공룡 포효 듣기!">
+            ${renderDinoArt(partner, { unlocked: true, equipped: state.equippedGear, mood: ui.dinoMood })}
             <span class="dq-avatar-sound-badge" aria-hidden="true">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             </span>
@@ -958,6 +1015,9 @@
             <div class="dq-partner-name-row">
               <span class="dq-partner-name">${esc(partner.name)}</span>
               <span class="dq-rarity-tag ${partner.rarity}">${partner.rarityLabel}</span>
+              <button class="dq-timer-chip" style="margin-left:auto;background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.48);color:var(--gold-hi)" data-act="open-wardrobe">
+                👔 꾸미기${newGearCnt > 0 ? ` (${newGearCnt})` : ""}
+              </button>
             </div>
             <div class="dq-speech">${speechHtml}</div>
           </div>
@@ -1358,8 +1418,126 @@
     `;
   }
 
+  function renderGearThumb(item) {
+    if (item.sprite) {
+      return `<img src="${item.sprite}" alt="${esc(item.name)}" style="width:66px;height:66px;object-fit:contain" decoding="async" />`;
+    }
+    if (item.slot === "aura") {
+      return `<svg width="68" height="68" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>${GEAR.AURA_DEFS}</defs>${item.svg}</svg>`;
+    }
+    const vb = item.slot === "back" ? "-62 -52 96 104" : "-42 -42 84 74";
+    return `<svg width="68" height="68" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${item.svg}</svg>`;
+  }
+
+  function renderWardrobeView() {
+    const partner = getDino(state.partnerDino);
+    const streak = computeStreak(state);
+    const unlockedIds = new Set(GEAR.getUnlockedGearIds(state, streak));
+    const filtered = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
+    const equippedCount = Object.values(state.equippedGear || {}).filter(Boolean).length;
+
+    return `
+      <div class="dq-wardrobe-layout">
+        <section class="dq-wardrobe-stage">
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px">
+            <span style="font-family:'Jua','Noto Sans KR',sans-serif;font-size:21px;color:#fff">${esc(partner.name)}</span>
+            <span class="dq-rarity-tag ${partner.rarity}">${partner.rarityLabel}</span>
+          </div>
+          <div style="font-size:12px;color:var(--mut);font-weight:700;margin-bottom:6px">
+            공룡을 누르면 입을 벌리고 실제 울음소리로 포효해요!
+          </div>
+          <div class="dq-wardrobe-preview" data-act="roar-dino" data-did="${partner.id}">
+            ${renderDinoArt(partner, { unlocked: true, equipped: state.equippedGear, mood: ui.dinoMood })}
+          </div>
+          <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap">
+            <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="roar-dino" data-did="${partner.id}">🔊 포효!</button>
+            <button class="dq-btn dq-btn-green dq-btn-sm" data-act="jump-dino">⚡ 점프!</button>
+            <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="clear-gear" ${equippedCount === 0 ? "disabled" : ""}>🔄 벗기</button>
+          </div>
+
+          <div class="dq-wardrobe-slots">
+            ${GEAR.SLOTS.map(sl => {
+              const eqId = state.equippedGear?.[sl.id];
+              const eqItem = eqId ? GEAR.getItem(eqId) : null;
+              return `
+                <div class="dq-slot-chip ${eqItem ? "filled" : ""}">
+                  <span>${sl.icon} ${sl.label}</span>
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:95px">
+                    ${eqItem ? esc(eqItem.name) : "없음"}
+                  </span>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <div class="dq-wardrobe-dino-picker">
+            <div class="dq-wardrobe-picker-head">
+              <span>🦕 공룡 바꿔 입혀보기 (${getUnlockedDinoCount()}/${DINOS.length})</span>
+              ${DEV_UNLOCK_ALL ? `<span class="dq-dev-pill">🔧 개발 전체해금</span>` : ""}
+            </div>
+            <div class="dq-wardrobe-dino-pills">
+              ${DINOS.filter(d => isDinoUnlocked(d.id)).map(d => `
+                <button class="dq-mini-dino-btn ${d.id === partner.id ? "on" : ""}" data-act="quick-switch-dino" data-did="${d.id}" title="${esc(d.name)}">
+                  <img src="${d.sprite}" alt="${esc(d.nick)}" />
+                  <span>${esc(d.nick)}</span>
+                </button>
+              `).join("")}
+            </div>
+          </div>
+        </section>
+
+        <section class="dq-card">
+          <div class="dq-card-title" style="flex-wrap:wrap">
+            <h2>👔 장비 옷장 (${unlockedIds.size} / ${GEAR.ITEMS.length} 해금)</h2>
+            <div class="dq-day-pills">
+              <button class="dq-day-pill ${ui.gearSlot === "all" ? "on" : ""}" data-act="gear-slot" data-val="all">전체</button>
+              ${GEAR.SLOTS.map(sl => `
+                <button class="dq-day-pill ${ui.gearSlot === sl.id ? "on" : ""}" data-act="gear-slot" data-val="${sl.id}">
+                  ${sl.icon} ${sl.label}
+                </button>
+              `).join("")}
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--mut);margin-bottom:12px;font-weight:700">
+            숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 🪙)
+          </div>
+
+          <div class="dq-gear-grid">
+            ${filtered.map(it => {
+              const unlocked = unlockedIds.has(it.id);
+              const equipped = state.equippedGear?.[it.slot] === it.id;
+              const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
+              const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
+              return `
+                <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""}"
+                  ${unlocked ? `data-act="toggle-gear" data-gid="${it.id}"` : ""}>
+                  ${equipped ? `<span class="dq-partner-crown" style="background:var(--gold);color:#3b1900">✓ 착용중</span>` : ""}
+                  <div class="dq-gear-preview-box">${renderGearThumb(it)}</div>
+                  <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
+                  <div style="font-size:14.5px;font-weight:900;color:#fff">${esc(it.name)}</div>
+                  ${unlocked
+                    ? `<div style="font-size:11.5px;color:${equipped ? "var(--gold-hi)" : "var(--emerald-hi)"};font-weight:800">
+                        ${equipped ? "눌러서 벗기" : "눌러서 착용하기!"}
+                      </div>`
+                    : `<div style="width:100%">
+                        <div style="font-size:11px;color:var(--tx2);font-weight:700;margin-bottom:4px">🔒 ${esc(it.condText)}</div>
+                        <div class="dq-bar" style="height:6px"><div class="dq-bar-fill" style="width:${pct}%"></div></div>
+                        <div style="font-size:10.5px;color:var(--mut);margin-top:3px;font-weight:800">${cur} / ${it.target}</div>
+                      </div>`
+                  }
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </section>
+      </div>
+    `;
+  }
+
   function renderDinosTab() {
     const achClaimable = getClaimableAchievementsCount();
+    const newGearCnt = getNewGearIds().length;
+    const unlockedGearCnt = GEAR ? GEAR.getUnlockedGearIds(state, computeStreak(state)).length : 0;
     const need = Math.max(1, Number(state.settings.eggNeedDays) || 3);
     const eggPct = state.pendingEggs > 0 ? 100 : Math.min(100, Math.round((state.eggProgress / need) * 100));
 
@@ -1367,8 +1545,11 @@
       <main>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
           <div class="dq-subtabs" style="margin-bottom:0">
+            <button class="dq-subtab ${ui.dinoSubTab === "wardrobe" ? "on" : ""}" data-act="dino-sub" data-val="wardrobe">
+              👔 공룡 꾸미기 (${unlockedGearCnt}/${GEAR ? GEAR.ITEMS.length : 0})${newGearCnt > 0 ? ` ✨` : ""}
+            </button>
             <button class="dq-subtab ${ui.dinoSubTab === "collection" ? "on" : ""}" data-act="dino-sub" data-val="collection">
-              🦕 공룡 도감 (${state.unlockedDinos.length}/${DINOS.length})
+              🦕 공룡 도감 (${getUnlockedDinoCount()}/${DINOS.length})
             </button>
             <button class="dq-subtab ${ui.dinoSubTab === "achievements" ? "on" : ""}" data-act="dino-sub" data-val="achievements">
               🏆 탐험 업적 ${achClaimable > 0 ? `(${achClaimable}개 받기!)` : ""}
@@ -1386,16 +1567,16 @@
           </div>
         </div>
 
-        ${ui.dinoSubTab === "collection" ? `
+        ${ui.dinoSubTab === "wardrobe" ? renderWardrobeView() : ui.dinoSubTab === "collection" ? `
           <div class="dq-dino-grid">
             ${DINOS.map(d => {
-              const unlocked = state.unlockedDinos.includes(d.id);
+              const unlocked = isDinoUnlocked(d.id);
               const isPartner = state.partnerDino === d.id;
               return `
                 <div class="dq-dino-card ${unlocked ? "" : "locked"} ${isPartner ? "active-partner" : ""}"
                   ${unlocked ? `data-act="open-dino-detail" data-did="${d.id}"` : ""}>
                   ${isPartner ? `<span class="dq-partner-crown">⭐ 파트너</span>` : ""}
-                  <div class="dq-dino-art">${renderDinoArt(d, unlocked)}</div>
+                  <div class="dq-dino-art">${renderDinoArt(d, { unlocked, equipped: isPartner ? state.equippedGear : {} })}</div>
                   <span class="dq-rarity-tag ${d.rarity}">${d.rarityLabel}</span>
                   <div style="font-family:'Jua','Noto Sans KR',sans-serif;font-size:18px;color:#fff">
                     ${unlocked ? esc(d.name) : "???"}
@@ -1568,7 +1749,7 @@
         <div class="dq-hatch-stage">
           <span class="dq-rarity-tag ${d.rarity}" style="font-size:13px;padding:4px 12px">${d.rarityLabel} 공룡 발견!</span>
           <div class="dq-dino-portrait-lg" data-act="roar-dino" data-did="${d.id}" title="눌러서 울음소리 듣기">
-            ${renderDinoArt(d, true)}
+            ${renderDinoArt(d, { unlocked: true, mood: ui.dinoMood })}
           </div>
           <h2 style="margin:0 0 4px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:28px;color:var(--gold-hi)">${esc(d.name)}!</h2>
           <div style="font-size:13px;color:var(--teal);font-weight:800;margin-bottom:3px">${d.era} · ${d.diet}</div>
@@ -1635,7 +1816,7 @@
           <div class="dq-modal-body" style="text-align:center">
             <span class="dq-rarity-tag ${d.rarity}" style="font-size:12.5px;padding:3px 12px">${d.rarityLabel}</span>
             <div class="dq-dino-portrait-lg" data-act="roar-dino" data-did="${d.id}" title="눌러서 울음소리 듣기">
-              ${renderDinoArt(d, true)}
+              ${renderDinoArt(d, { unlocked: true, equipped: isPartner ? state.equippedGear : {}, mood: ui.dinoMood })}
             </div>
             <h2 style="margin:0 0 4px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:26px">${esc(d.name)}</h2>
             <div style="font-size:13px;color:var(--teal);font-weight:800;margin-bottom:3px">${d.era} · ${d.diet}</div>
@@ -2094,6 +2275,23 @@
         </div>
       </div>
 
+      ${(() => {
+        const streak = computeStreak(state);
+        const lockedGear = GEAR ? GEAR.ITEMS.filter(it => !GEAR.isItemUnlocked(it, state, streak)) : [];
+        if (lockedGear.length === 0) return "";
+        return `
+          <div class="dq-section-box">
+            <div class="dq-section-h"><span>👔 부모님 깜짝 공룡 장비 선물 (조기 해금)</span></div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <select id="admin-gift-gear-sel" class="dq-select" style="flex:1;min-width:190px">
+                ${lockedGear.map(it => `<option value="${it.id}">${it.icon} ${esc(it.name)} (${esc(it.condText)})</option>`).join("")}
+              </select>
+              <button class="dq-btn dq-btn-gold dq-btn-sm" data-act="admin-gift-gear">🎁 깜짝 해금!</button>
+            </div>
+          </div>
+        `;
+      })()}
+
       <div class="dq-section-box">
         <div class="dq-section-h">
           <span>${editItem ? "✏️ 선물 수정" : "➕ 새 선물 상점 상품 추가"}</span>
@@ -2270,12 +2468,63 @@
       case "nav":
         sfx.tap();
         ui.tab = btn.dataset.val;
+        if (ui.tab === "dinos" && ui.dinoSubTab === "wardrobe") markGearSeen();
+        render();
+        break;
+
+      case "open-wardrobe":
+        sfx.tap();
+        ui.tab = "dinos";
+        ui.dinoSubTab = "wardrobe";
+        markGearSeen();
         render();
         break;
 
       case "dino-sub":
         sfx.tap();
         ui.dinoSubTab = btn.dataset.val;
+        if (ui.dinoSubTab === "wardrobe") markGearSeen();
+        render();
+        break;
+
+      case "gear-slot":
+        sfx.tap();
+        ui.gearSlot = btn.dataset.val;
+        render();
+        break;
+
+      case "toggle-gear": {
+        const gid = btn.dataset.gid;
+        const item = GEAR ? GEAR.getItem(gid) : null;
+        if (!item) break;
+        if (!GEAR.isItemUnlocked(item, state, computeStreak(state))) break;
+        if (!state.equippedGear) state.equippedGear = { head: null, face: null, back: null, aura: null };
+        const wasOn = state.equippedGear[item.slot] === gid;
+        state.equippedGear[item.slot] = wasOn ? null : gid;
+        saveState();
+        if (wasOn) {
+          sfx.tap();
+          showToast(`${item.icon} ${item.name} 해제`);
+        } else {
+          sfx.approve();
+          triggerDinoMood("jump");
+          showToast(`✨ ${item.icon} ${item.name} 장착 완료!`);
+        }
+        render();
+        break;
+      }
+
+      case "clear-gear":
+        sfx.tap();
+        state.equippedGear = { head: null, face: null, back: null, aura: null };
+        saveState();
+        showToast("모든 장비를 벗었어요");
+        render();
+        break;
+
+      case "jump-dino":
+        sfx.coin();
+        triggerDinoMood("jump");
         render();
         break;
 
@@ -2324,7 +2573,7 @@
         const partner = getDino(state.partnerDino);
         const lines = [...partner.cheer, partner.fact];
         const msg = lines[Math.floor(Math.random() * lines.length)];
-        triggerDinoHappy(msg);
+        triggerDinoMood("roar", msg);
         render();
         break;
       }
@@ -2332,8 +2581,23 @@
       case "roar-dino": {
         const did = btn.dataset.did || state.partnerDino;
         sfx.roar(did);
+        triggerDinoMood("roar");
         const d = getDino(did);
-        showToast(`🦖 ${d.name}의 울음소리! (${d.soundDesc || ""})`, 2200);
+        showToast(`🦖 ${d.name} 포효! (${d.soundDesc || ""})`, 2200);
+        render();
+        break;
+      }
+
+      case "admin-gift-gear": {
+        const gid = document.getElementById("admin-gift-gear-sel")?.value;
+        const item = gid && GEAR ? GEAR.getItem(gid) : null;
+        if (!item) break;
+        if (!Array.isArray(state.bonusGear)) state.bonusGear = [];
+        if (!state.bonusGear.includes(gid)) state.bonusGear.push(gid);
+        saveState();
+        sfx.fanfare();
+        showToast(`🎁 "${item.name}" 깜짝 해금 완료! 공룡 꾸미기에서 바로 착용할 수 있어요!`);
+        render();
         break;
       }
 
@@ -2407,6 +2671,15 @@
         showToast(`⭐ ${getDino(btn.dataset.did).name}를 파트너로 데려왔어요!`);
         render();
         break;
+      case "quick-switch-dino": {
+        const did = btn.dataset.did;
+        if (!isDinoUnlocked(did)) break;
+        state.partnerDino = did;
+        saveState();
+        sfx.tap();
+        render();
+        break;
+      }
 
       /* Shop Redeem (Requires Parent PIN) */
       case "ask-redeem": {

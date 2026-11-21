@@ -366,8 +366,6 @@ button {
   background: radial-gradient(circle at 50% 42%, rgba(45, 212, 191, 0.16), rgba(4, 12, 10, 0.8));
   border: 2px solid rgba(251, 191, 36, 0.42);
   box-shadow: 0 10px 24px -10px rgba(0, 0, 0, 0.75), inset 0 0 0 1px rgba(255, 255, 255, 0.12);
-  display: grid;
-  place-items: center;
   flex-shrink: 0;
   cursor: pointer;
   position: relative;
@@ -391,23 +389,435 @@ button {
 }
 .dq-partner-avatar .dq-dino-img,
 .dq-partner-avatar .dq-dino-svg-wrap,
-.dq-partner-avatar .dq-dino-svg-wrap svg {
+.dq-partner-avatar .dq-dino-svg-wrap svg,
+.dq-partner-avatar .sd-dino-svg {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
-.dq-partner-avatar.happy {
-  animation: dq-dino-roar 0.65s ease-out;
+.dq-partner-avatar.roaring {
   border-color: var(--gold-hi);
-  box-shadow: 0 0 26px rgba(251, 191, 36, 0.65);
+  box-shadow: 0 0 28px rgba(251, 191, 36, 0.72);
 }
-@keyframes dq-dino-roar {
+.dq-partner-avatar.happy {
+  border-color: var(--emerald-hi);
+  box-shadow: 0 0 24px rgba(74, 222, 128, 0.65);
+}
+
+/* ============================================================================
+   ANIMATED SD DINOSAUR RIG KEYFRAMES (60fps Breathing, Tail, Blink, Roar, Jump)
+   ============================================================================ */
+.sd-dino-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  overflow: visible;
+}
+.sd-dino-svg.locked {
+  filter: brightness(0) opacity(0.38);
+}
+.sd-dino-svg.unlocked .sd-body-wrap {
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: sd-breathe 2.6s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-tail {
+  animation: sd-tail-sway 2.3s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-head {
+  animation: sd-head-bob 2.6s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-eyes {
+  animation: sd-blink 4.6s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-cape-flap {
+  transform-box: fill-box;
+  transform-origin: right top;
+  animation: sd-cape 1.6s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-flame {
+  transform-box: fill-box;
+  transform-origin: center top;
+  animation: sd-flame-flicker 0.22s ease-in-out infinite alternate;
+}
+.sd-dino-svg.unlocked .sd-wing-flap {
+  transform-box: fill-box;
+  transform-origin: right center;
+  animation: sd-wing 1.8s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-wing-flap-r {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: sd-wing-r 1.8s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-aura-pulse {
+  transform-origin: 100px 108px;
+  animation: sd-aura-p 2.4s ease-in-out infinite;
+}
+.sd-dino-svg.unlocked .sd-aura-spin {
+  transform-origin: 100px 106px;
+  animation: sd-aura-rot 18s linear infinite;
+}
+
+/* ROAR STATE: Head tilts back, hinged jaw opens wide, soundwaves blast out! */
+.sd-roar-waves {
+  opacity: 0;
+  pointer-events: none;
+}
+.sd-dino-svg.is-roaring .sd-rig {
+  transform-origin: 100px 175px;
+  animation: sd-roar-body 1.2s ease-out;
+}
+.sd-dino-svg.is-roaring .sd-head {
+  animation: sd-roar-head 1.2s ease-out !important;
+}
+.sd-dino-svg.is-roaring .sd-jaw {
+  animation: sd-roar-jaw 1.2s ease-out !important;
+}
+.sd-dino-svg.is-roaring .sd-roar-waves {
+  animation: sd-roar-wave 1.15s ease-out !important;
+}
+
+/* JUMP CELEBRATION STATE */
+.sd-dino-svg.is-jumping .sd-rig {
+  transform-origin: 100px 175px;
+  animation: sd-jump-rig 0.55s cubic-bezier(0.25, 1.2, 0.5, 1) 2;
+}
+.sd-dino-svg.is-jumping .sd-shadow {
+  transform-origin: 100px 180px;
+  animation: sd-jump-shadow 0.55s ease-in-out 2;
+}
+
+@keyframes sd-breathe {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  50% { transform: translateY(-2.2px) scaleY(1.022); }
+}
+@keyframes sd-tail-sway {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(7deg); }
+}
+@keyframes sd-head-bob {
+  0%, 100% { transform: rotate(0deg) translateY(0); }
+  50% { transform: rotate(-2.2deg) translateY(-1.6px); }
+}
+@keyframes sd-blink {
+  0%, 91%, 97%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.08); }
+}
+@keyframes sd-cape {
+  0%, 100% { transform: rotate(-3deg) scaleX(1); }
+  50% { transform: rotate(5deg) scaleX(1.06); }
+}
+@keyframes sd-flame-flicker {
+  from { transform: scaleY(0.82) scaleX(0.94); opacity: 0.88; }
+  to { transform: scaleY(1.22) scaleX(1.08); opacity: 1; }
+}
+@keyframes sd-wing {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(10deg); }
+}
+@keyframes sd-wing-r {
+  0%, 100% { transform: rotate(8deg); }
+  50% { transform: rotate(-10deg); }
+}
+@keyframes sd-aura-p {
+  0%, 100% { transform: scale(0.96); opacity: 0.78; }
+  50% { transform: scale(1.05); opacity: 1; }
+}
+@keyframes sd-aura-rot {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes sd-roar-body {
+  0% { transform: scale(1) translateY(0); }
+  16% { transform: scale(1.06, 0.96) translateY(2px); }
+  32% { transform: scale(1.04) translate(-2px, -3px); }
+  46% { transform: scale(1.04) translate(2px, -3px); }
+  62% { transform: scale(1.03) translate(-1px, -2px); }
+  100% { transform: scale(1) translateY(0); }
+}
+@keyframes sd-roar-head {
+  0% { transform: rotate(0deg); }
+  18% { transform: rotate(-16deg) translateY(-3px); }
+  68% { transform: rotate(-14deg) translateY(-2px); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes sd-roar-jaw {
+  0% { transform: rotate(0deg); }
+  18% { transform: rotate(28deg); }
+  66% { transform: rotate(24deg); }
+  100% { transform: rotate(0deg); }
+}
+@keyframes sd-roar-wave {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  75% { opacity: 0.9; }
+  100% { opacity: 0; }
+}
+@keyframes sd-jump-rig {
+  0%, 100% { transform: translateY(0) scale(1); }
+  45% { transform: translateY(-16px) scale(1.04); }
+}
+@keyframes sd-jump-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.34; }
+  45% { transform: scaleX(0.68); opacity: 0.16; }
+}
+
+/* ============================================================================
+   TRANSPARENT PNG SD SPRITE STAGE (Ready for High-Detail 3D/2D Game Sprites)
+   ============================================================================ */
+.sd-sprite-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+.sd-sprite-aura,
+.sd-sprite-roar-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.sd-sprite-shadow {
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  width: 58%;
+  height: 11%;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 0, 0, 0.48), transparent 72%);
+}
+.sd-sprite-rig {
+  position: absolute;
+  left: 7%;
+  top: 10%;
+  width: 86%;
+  height: 86%;
+  transform-origin: center 88%;
+}
+.sd-sprite-stage.unlocked .sd-sprite-rig {
+  animation: sd-sprite-breathe 2.5s ease-in-out infinite;
+}
+.sd-sprite-stage.is-roaring .sd-sprite-rig {
+  animation: sd-sprite-roar 1.15s ease-out !important;
+}
+.sd-sprite-stage.is-roaring .sd-roar-waves {
+  animation: sd-roar-wave 1.15s ease-out !important;
+}
+.sd-sprite-stage.is-jumping .sd-sprite-rig {
+  animation: sd-sprite-jump 0.55s cubic-bezier(0.25, 1.25, 0.5, 1) 2 !important;
+}
+.sd-sprite-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  z-index: 2;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+}
+.sd-sprite-stage.locked .sd-sprite-img {
+  filter: brightness(0) opacity(0.38);
+}
+.sd-sprite-gear {
+  position: absolute;
+  pointer-events: none;
+  z-index: 3;
+}
+.sd-sprite-gear.gear-back { z-index: 1; }
+.sd-sprite-gear.gear-front-body { z-index: 3; }
+.sd-sprite-gear.gear-face { z-index: 4; }
+.sd-sprite-gear.gear-head { z-index: 5; }
+.sd-sprite-roar-svg { z-index: 6; }
+.sd-gear-img, .sd-gear-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.42));
+}
+@keyframes sd-sprite-breathe {
+  0%, 100% { transform: scale(1, 1) translateY(0); }
+  50% { transform: scale(1.025, 0.975) translateY(1.5px); }
+}
+@keyframes sd-sprite-roar {
   0% { transform: scale(1) rotate(0deg); }
-  20% { transform: scale(1.09) rotate(-3deg); }
-  45% { transform: scale(1.11) rotate(3deg); }
-  70% { transform: scale(1.06) rotate(-2deg); }
+  18% { transform: scale(1.08, 0.94) rotate(-5deg) translateY(-3px); }
+  36% { transform: scale(1.1, 1.04) rotate(3deg) translateY(-6px); }
+  54% { transform: scale(1.08, 1.02) rotate(-3deg) translateY(-5px); }
+  74% { transform: scale(1.05) rotate(2deg) translateY(-2px); }
   100% { transform: scale(1) rotate(0deg); }
+}
+@keyframes sd-sprite-jump {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  20% { transform: translateY(3px) scale(1.08, 0.9); }
+  55% { transform: translateY(-14%) scale(0.95, 1.07); }
+}
+
+/* ============================================================================
+   WARDROBE / GEAR DRESS-UP ROOM (iPad 2-Column Layout)
+   ============================================================================ */
+.dq-wardrobe-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+@media (min-width: 860px) {
+  .dq-wardrobe-layout {
+    grid-template-columns: 360px 1fr;
+    gap: 18px;
+  }
+}
+.dq-wardrobe-stage {
+  background:
+    radial-gradient(280px 240px at 50% 45%, rgba(52, 211, 153, 0.2), transparent 72%),
+    linear-gradient(175deg, #16332b, #0c1b18);
+  border: 1.5px solid rgba(251, 191, 36, 0.38);
+  border-radius: 20px;
+  padding: 18px;
+  text-align: center;
+}
+.dq-wardrobe-preview {
+  width: 248px;
+  height: 248px;
+  margin: 14px auto 12px;
+  border-radius: 22px;
+  background: radial-gradient(circle at 50% 46%, rgba(45, 212, 191, 0.16), rgba(6, 15, 13, 0.72));
+  border: 1.5px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  cursor: pointer;
+}
+.dq-wardrobe-slots {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 7px;
+  margin-top: 12px;
+  text-align: left;
+}
+.dq-slot-chip {
+  padding: 7px 10px;
+  border-radius: 11px;
+  background: rgba(9, 20, 18, 0.65);
+  border: 1px solid var(--bd);
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--tx2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.dq-slot-chip.filled {
+  border-color: rgba(251, 191, 36, 0.55);
+  color: var(--gold-hi);
+}
+.dq-wardrobe-dino-picker {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px dashed rgba(127, 163, 150, 0.28);
+  text-align: left;
+}
+.dq-wardrobe-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--tx2);
+  margin-bottom: 8px;
+}
+.dq-dev-pill {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(56, 189, 248, 0.18);
+  border: 1px solid rgba(56, 189, 248, 0.48);
+  color: #bae6fd;
+}
+.dq-wardrobe-dino-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.dq-mini-dino-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 3px 4px;
+  border-radius: 11px;
+  border: 1.5px solid var(--bd);
+  background: rgba(9, 20, 18, 0.65);
+  color: var(--tx2);
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.14s;
+}
+.dq-mini-dino-btn img {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  display: block;
+}
+.dq-mini-dino-btn.on {
+  border-color: var(--gold);
+  background: rgba(251, 191, 36, 0.2);
+  color: var(--gold-hi);
+  box-shadow: 0 0 12px -4px rgba(251, 191, 36, 0.65);
+}
+.dq-mini-dino-btn:active { transform: scale(0.94); }
+
+.dq-gear-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+  gap: 12px;
+}
+.dq-gear-card {
+  background: linear-gradient(180deg, rgba(25, 49, 43, 0.86), rgba(14, 29, 25, 0.96));
+  border: 1.5px solid var(--bd);
+  border-radius: 16px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: 0.16s;
+  position: relative;
+}
+.dq-gear-card:active { transform: scale(0.97); }
+.dq-gear-card.equipped {
+  border-color: var(--gold);
+  background: linear-gradient(160deg, rgba(251, 191, 36, 0.2), rgba(20, 44, 38, 0.95));
+  box-shadow: 0 0 20px -6px rgba(251, 191, 36, 0.6);
+}
+.dq-gear-card.locked {
+  opacity: 0.68;
+  cursor: default;
+}
+.dq-gear-preview-box {
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
+  background: rgba(9, 20, 18, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: grid;
+  place-items: center;
+}
+.dq-gear-card.locked .dq-gear-preview-box svg,
+.dq-gear-card.locked .dq-gear-preview-box img {
+  filter: grayscale(1) brightness(0.45);
 }
 
 .dq-partner-info {
@@ -1227,8 +1637,7 @@ button {
   overflow: hidden;
   border: 1.5px solid rgba(255, 255, 255, 0.13);
   background: radial-gradient(circle at 50% 40%, rgba(28, 60, 52, 0.65), rgba(6, 15, 13, 0.92));
-  display: grid;
-  place-items: center;
+  position: relative;
   box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.75);
 }
 .dq-dino-img,
@@ -1256,6 +1665,7 @@ button {
   height: 224px;
   margin: 12px auto;
   border-radius: 20px;
+  position: relative;
   overflow: hidden;
   border: 2px solid rgba(251, 191, 36, 0.5);
   box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.8), 0 0 28px -8px rgba(251, 191, 36, 0.35);

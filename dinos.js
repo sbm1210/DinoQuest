@@ -1,48 +1,13 @@
 /* ============================================================================
-   DINO QUEST · High-Detail Paleoart Dinosaur Encyclopedia & Game Icons
-   - 3 Photorealistic Paleoart Portraits (trex, triceratops, parasaurolophus)
-   - 12 High-Detail Realistic Paleoart SVGs (240x240) + Anatomical Silhouettes
-   - Detailed Paleontology Stats + Species-Specific Realistic Call Descriptions
+   DINO QUEST · 12 Animated High-Detail RPG SD Dinosaur Rigs (200x200)
+   - Multi-part animated SVG rigs (tail sway, breathing body, blinking eyes,
+     hinged roaring jaw + roar shockwaves, celebration jump)
+   - Precision per-species gear anchors (head, face, back, aura)
    ============================================================================ */
 
 window.DINO_DATA = (function () {
-  // Shared dark prehistoric jungle backdrop snippet for realistic SVG portraits
-  function jungleBg(id, glowColor = "#fbbf24", water = false) {
-    if (water) {
-      return `
-        <defs>
-          <radialGradient id="bg-${id}" cx="55%" cy="22%" r="78%">
-            <stop offset="0%" stop-color="#0e4a5e"/>
-            <stop offset="55%" stop-color="#082433"/>
-            <stop offset="100%" stop-color="#04111a"/>
-          </radialGradient>
-        </defs>
-        <rect width="240" height="240" fill="url(#bg-${id})"/>
-        <path d="M55 0 L95 140 L125 140 L95 0 Z" fill="#38bdf8" opacity="0.09"/>
-        <path d="M135 0 L155 150 L185 150 L175 0 Z" fill="#7dd3fc" opacity="0.07"/>
-        <circle cx="44" cy="68" r="4" fill="#bae6fd" opacity="0.22"/>
-        <circle cx="192" cy="52" r="3" fill="#bae6fd" opacity="0.2"/>
-        <circle cx="172" cy="186" r="5" fill="#bae6fd" opacity="0.16"/>
-      `;
-    }
-    return `
-      <defs>
-        <radialGradient id="bg-${id}" cx="65%" cy="32%" r="75%">
-          <stop offset="0%" stop-color="${glowColor}" stop-opacity="0.22"/>
-          <stop offset="48%" stop-color="#0f2822"/>
-          <stop offset="100%" stop-color="#06120f"/>
-        </radialGradient>
-      </defs>
-      <rect width="240" height="240" fill="url(#bg-${id})"/>
-      <!-- Prehistoric fern silhouettes -->
-      <path d="M-4 240 C12 190, 26 168, 54 148 C36 172, 24 200, 18 240 Z" fill="#071a15" opacity="0.9"/>
-      <path d="M196 240 C200 198, 212 172, 244 152 L244 240 Z" fill="#071a15" opacity="0.88"/>
-      <path d="M8 92 Q30 70 58 64 M14 108 Q36 90 60 88 M188 76 Q210 56 236 52" stroke="#0b241d" stroke-width="5" stroke-linecap="round" fill="none" opacity="0.7"/>
-      <ellipse cx="120" cy="212" rx="92" ry="14" fill="rgba(0,0,0,0.45)"/>
-    `;
-  }
-
   const DINOS = [
+    /* 1. TYRANNOSAURUS REX */
     {
       id: "trex",
       name: "티라노사우루스",
@@ -55,20 +20,78 @@ window.DINO_DATA = (function () {
       specs: "몸길이 약 12.5m · 무게 약 8톤",
       soundDesc: "가슴을 울리는 초저음 포효와 거친 숨소리",
       fact: "바나나만 한 톱니 이빨 60개와 자동차도 부수는 엄청난 턱 힘을 가진 백악기 최강의 폭군 도마뱀이에요!",
-      cheer: ["오늘 퀘스트도 크아앙! 정복해보자!", "지섭 탐험가, 준비됐지? 탐험 출발!", "어려운 숙제도 끝까지 뚫고 나가자!"],
-      img: "./assets/dinos/trex.jpg",
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M12 68 C22 65, 34 62, 42 56 C46 42, 56 36, 68 32 L72 22 C76 16, 94 14, 106 22 C110 26, 108 32, 97 34 L86 35 L102 41 C98 46, 86 47, 76 45 L72 54 L83 58 L80 63 L69 60 C72 72, 68 82, 64 88 L72 104 L60 105 L54 88 L46 88 L43 104 L32 104 L38 84 C30 78, 20 75, 12 68 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("trex", "#f59e0b")}
-        <defs>
-          <linearGradient id="sk-trex" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4d6b45"/><stop offset="55%" stop-color="#283d27"/><stop offset="100%" stop-color="#142117"/></linearGradient>
-        </defs>
-        <path d="M16 144 C48 140, 74 128, 92 108 C108 82, 126 66, 152 60 C166 56, 198 58, 214 72 C222 80, 218 92, 202 96 L166 94 L196 112 C188 122, 166 124, 146 116 L138 138 C142 162, 134 188, 124 210 L102 210 L108 176 L88 176 L82 210 L62 210 L72 168 C54 162, 34 156, 16 144 Z" fill="url(#sk-trex)" stroke="#09120b" stroke-width="3"/>
-        <path d="M150 88 L206 94 L194 112 L148 106 Z" fill="#4c1d1d"/>
-        <path d="M162 90 L165 101 L169 90 M174 91 L177 103 L181 91 M186 92 L189 102 L193 92 M197 93 L199 100 L203 93" fill="#fef3c7"/>
-        <circle cx="158" cy="74" r="6" fill="#f59e0b" stroke="#09120b" stroke-width="2"/><ellipse cx="158" cy="74" rx="1.6" ry="4.5" fill="#09090b"/>
-      </svg>`
+      cheer: ["크아앙! 오늘 퀘스트도 정복하자!", "지섭 탐험가, 장비 챙겼지? 출발!", "어려운 숙제도 한 번에 돌파하자!"],
+      sprite: "./assets/sprites/dinos/trex.png",
+      anchors: {
+        head: { x: 122, y: 22, r: 0, s: 1.00 },
+        face: { x: 134, y: 49, r: 2, s: 0.92 },
+        back: { x: 84, y: 92, r: -14, s: 1.00 },
+        roar: { x: 178, y: 74 }
+      },
+      landmarks: {
+        skullL: [104, 30], skullR: [160, 26],
+        eye1: [130, 42], eye2: [157, 35],
+        shield: [106, 118, -12, 0.58]
+      },
+      rig: {
+        defs: `
+          <linearGradient id="sd-trex-b" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#4ade80"/><stop offset="55%" stop-color="#15803d"/><stop offset="100%" stop-color="#0a3b1f"/>
+          </linearGradient>
+          <linearGradient id="sd-trex-h" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#5eead4" stop-opacity="0.25"/><stop offset="100%" stop-color="#052e16" stop-opacity="0"/>
+          </linearGradient>`,
+        tailOrigin: "68px 132px",
+        headOrigin: "100px 92px",
+        jawOrigin: "112px 84px",
+        eyeOrigin: "126px 58px",
+        tail: `
+          <path d="M70 124 C44 128, 22 114, 14 96 C26 106, 44 108, 72 106 Z" fill="#15803d" stroke="#052312" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M34 114 L42 108 L48 118 M50 116 L58 109 L62 118" fill="#064e3b" opacity="0.7"/>`,
+        backLegs: `
+          <path d="M72 142 L62 172 L52 175 L76 177 L86 146 Z" fill="#0f5c2d" stroke="#052312" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M54 175 L48 176 M62 176 L58 178" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>`,
+        body: `
+          <path d="M62 112 C64 86, 86 78, 114 86 C134 92, 138 122, 126 144 C114 160, 78 160, 66 142 C60 134, 61 122, 62 112 Z" fill="url(#sd-trex-b)" stroke="#052312" stroke-width="3.6"/>
+          <!-- Muscular belly scales -->
+          <path d="M92 98 C114 102, 122 124, 114 146 C104 155, 88 152, 86 134 C84 118, 86 104, 92 98 Z" fill="#fde68a"/>
+          <path d="M92 112 Q104 116 114 112 M90 125 Q104 129 115 125 M92 138 Q103 142 112 138" stroke="#ca8a04" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+          <!-- Dorsal battle stripes -->
+          <path d="M68 104 L80 109 L67 116 M65 122 L78 126 L67 134" fill="#052e16" opacity="0.72"/>`,
+        frontLegs: `
+          <!-- Muscular foreground hind leg & claws -->
+          <path d="M104 142 L110 172 L128 175 L100 177 L92 144 Z" fill="url(#sd-trex-b)" stroke="#052312" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M124 173 L132 175 M116 175 L123 177" stroke="#fef3c7" stroke-width="3.2" stroke-linecap="round"/>
+          <!-- Iconic tiny ferocious clawed arms -->
+          <path d="M124 108 L142 114 L138 122 L120 118 Z" fill="#22c55e" stroke="#052312" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M142 114 L147 118 M139 119 L144 123" stroke="#fef3c7" stroke-width="2.6" stroke-linecap="round"/>`,
+        jaw: `
+          <path d="M106 82 L158 84 C162 93, 152 100, 134 99 L102 95 Z" fill="#166534" stroke="#052312" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M116 83 L154 85 L148 93 L114 91 Z" fill="#7f1d1d"/>
+          <polygon points="122,87 125,81 128,87" fill="#fef9c3"/>
+          <polygon points="134,87 137,81 140,87" fill="#fef9c3"/>
+          <polygon points="146,87 149,81 152,87" fill="#fef9c3"/>`,
+        head: `
+          <path d="M84 68 C84 42, 108 32, 138 36 C160 39, 174 52, 172 68 C170 80, 156 84, 134 83 L106 85 C92 85, 84 78, 84 68 Z" fill="url(#sd-trex-b)" stroke="#052312" stroke-width="3.6" stroke-linejoin="round"/>
+          <!-- Rim light & snout scars -->
+          <path d="M102 40 C124 34, 152 38, 166 52" fill="none" stroke="#bef264" stroke-width="2.6" opacity="0.7" stroke-linecap="round"/>
+          <path d="M144 50 L150 58 M152 51 L156 57" stroke="#052e16" stroke-width="2.2" stroke-linecap="round" opacity="0.6"/>
+          <!-- Upper serrated fangs -->
+          <polygon points="124,82 128,92 132,82" fill="#fffbeb" stroke="#052312" stroke-width="1.3"/>
+          <polygon points="136,82 140,93 144,82" fill="#fffbeb" stroke="#052312" stroke-width="1.3"/>
+          <polygon points="148,81 152,91 156,81" fill="#fffbeb" stroke="#052312" stroke-width="1.3"/>
+          <polygon points="160,79 163,87 166,79" fill="#fffbeb" stroke="#052312" stroke-width="1.3"/>
+          <!-- Nostril -->
+          <ellipse cx="160" cy="54" rx="3" ry="2" fill="#052312"/>`,
+        eyes: `
+          <path d="M112 49 Q126 42 138 49" stroke="#052312" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="125" cy="58" rx="9" ry="8.5" fill="#fbbf24" stroke="#052312" stroke-width="2.6"/>
+          <ellipse cx="127" cy="58" rx="3.2" ry="6.2" fill="#09090b"/>
+          <circle cx="129" cy="54.5" r="2.4" fill="#ffffff"/>`
+      }
     },
+
+    /* 2. TRICERATOPS */
     {
       id: "triceratops",
       name: "트리케라톱스",
@@ -77,22 +100,71 @@ window.DINO_DATA = (function () {
       rarityLabel: "일반",
       color: "#fb923c",
       era: "백악기 후기",
-      diet: "초식 공룡",
+      diet: "초식 방패",
       specs: "몸길이 약 9m · 뿔 길이 최대 1m",
       soundDesc: "코뿔소처럼 묵직한 저음 울음과 거친 콧김",
       fact: "단단한 뼈 방패 프릴과 1m가 넘는 3개의 뿔로 티라노사우루스와도 정면 대결했던 최강 방패 공룡이에요!",
-      cheer: ["단단한 뿔처럼 흔들리지 않고 완료!", "방패 프릴로 실수를 완벽 방어하자!", "끝까지 해내는 탐험가가 진짜 용사!"],
-      img: "./assets/dinos/triceratops.jpg",
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M10 74 C22 72, 30 62, 40 56 C52 48, 64 46, 70 40 C66 24, 78 16, 89 24 C95 29, 96 40, 91 48 L108 32 L98 52 L112 50 L106 60 C108 66, 104 72, 95 72 L86 72 L86 102 L74 102 L72 82 L50 82 L46 102 L34 102 L36 80 C24 80, 16 78, 10 74 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("tri", "#fb923c")}
-        <defs><linearGradient id="sk-tri" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#9a5c32"/><stop offset="100%" stop-color="#3f2111"/></linearGradient></defs>
-        <path d="M114 48 C144 26, 188 34, 198 76 C204 104, 186 132, 162 140 L120 132 Z" fill="#7c3a1d" stroke="#1f0d05" stroke-width="3"/>
-        <path d="M24 156 C46 120, 88 108, 144 114 L182 128 C196 142, 194 166, 174 174 L144 174 L144 214 L120 214 L118 182 L76 182 L72 214 L48 214 L52 174 Z" fill="url(#sk-tri)" stroke="#1f0d05" stroke-width="3"/>
-        <path d="M148 118 L218 76 L168 134 Z" fill="#fef3c7" stroke="#29150a" stroke-width="2.5"/>
-        <path d="M188 142 L214 126 L196 154 Z" fill="#fef3c7" stroke="#29150a" stroke-width="2.5"/>
-      </svg>`
+      cheer: ["단단한 뿔처럼 흔들리지 않고 완료!", "방패 프릴로 실수를 완벽 방어!", "끝까지 버티는 용사가 진짜 챔피언!"],
+      sprite: "./assets/sprites/dinos/triceratops.png",
+      anchors: {
+        head: { x: 136, y: 72, r: 10, s: 0.86 },
+        face: { x: 151, y: 117, r: 4, s: 0.78 },
+        back: { x: 76, y: 108, r: -10, s: 0.94 },
+        roar: { x: 184, y: 132 }
+      },
+      landmarks: {
+        skullL: [114, 92], skullR: [158, 92],
+        eye1: [135, 114], eye2: [156, 110],
+        shield: [110, 134, -4, 0.60]
+      },
+      gearOverrides: {
+        hat_bandana: { dx: 2, dy: 6, s: 0.96 }
+      },
+      rig: {
+        defs: `<linearGradient id="sd-tri-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fb923c"/><stop offset="55%" stop-color="#c2410c"/><stop offset="100%" stop-color="#5c1d06"/></linearGradient>`,
+        tailOrigin: "44px 124px",
+        headOrigin: "108px 98px",
+        jawOrigin: "136px 114px",
+        eyeOrigin: "140px 92px",
+        tail: `<path d="M48 122 C28 128, 16 122, 12 110 C24 112, 36 108, 52 104 Z" fill="#c2410c" stroke="#3b1204" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `
+          <rect x="46" y="138" width="20" height="38" rx="8" fill="#7c2d12" stroke="#3b1204" stroke-width="3.2"/>
+          <rect x="98" y="140" width="20" height="36" rx="8" fill="#7c2d12" stroke="#3b1204" stroke-width="3.2"/>`,
+        body: `
+          <ellipse cx="86" cy="120" rx="46" ry="32" fill="url(#sd-tri-b)" stroke="#3b1204" stroke-width="3.6"/>
+          <path d="M56 104 Q86 94 114 106" fill="none" stroke="#fed7aa" stroke-width="2.5" opacity="0.55" stroke-linecap="round"/>
+          <ellipse cx="86" cy="134" rx="28" ry="13" fill="#fed7aa" opacity="0.65"/>`,
+        frontLegs: `
+          <rect x="60" y="138" width="22" height="40" rx="8" fill="#ea580c" stroke="#3b1204" stroke-width="3.4"/>
+          <rect x="110" y="138" width="22" height="40" rx="8" fill="#fb923c" stroke="#3b1204" stroke-width="3.4"/>
+          <path d="M64 176 L78 176 M114 176 L128 176" stroke="#fef3c7" stroke-width="3.5" stroke-linecap="round"/>`,
+        jaw: `<path d="M134 114 L172 114 C168 126, 152 128, 134 124 Z" fill="#9a3412" stroke="#3b1204" stroke-width="3.2" stroke-linejoin="round"/>`,
+        head: `
+          <!-- Ornate spiked shield frill -->
+          <path d="M98 86 C88 46, 118 28, 144 44 C160 54, 162 84, 146 104 Z" fill="#ea580c" stroke="#3b1204" stroke-width="3.6" stroke-linejoin="round"/>
+          <polygon points="99,60 90,52 103,50" fill="#fef3c7" stroke="#3b1204" stroke-width="2"/>
+          <polygon points="116,40 112,28 125,36" fill="#fef3c7" stroke="#3b1204" stroke-width="2"/>
+          <polygon points="140,42 146,31 150,48" fill="#fef3c7" stroke="#3b1204" stroke-width="2"/>
+          <circle cx="114" cy="58" r="6" fill="#fef08a" opacity="0.85"/>
+          <circle cx="132" cy="56" r="6.5" fill="#7c2d12" opacity="0.75"/>
+          <circle cx="144" cy="70" r="5.5" fill="#fef08a" opacity="0.85"/>
+          <!-- Armored horned head & parrot beak -->
+          <path d="M114 82 C130 70, 162 76, 178 96 C182 106, 176 118, 156 118 L120 114 C108 108, 106 92, 114 82 Z" fill="url(#sd-tri-b)" stroke="#3b1204" stroke-width="3.6" stroke-linejoin="round"/>
+          <!-- 3 Sharp Curved Ivory Horns -->
+          <path d="M132 82 L176 46 L146 88 Z" fill="#fef9c3" stroke="#3b1204" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M120 84 L156 44 L134 90 Z" fill="#fde68a" stroke="#3b1204" stroke-width="2.8" stroke-linejoin="round"/>
+          <path d="M164 88 L188 74 L176 98 Z" fill="#fef9c3" stroke="#3b1204" stroke-width="2.8" stroke-linejoin="round"/>
+          <!-- Sharp keratin beak -->
+          <path d="M168 102 L182 114 L164 118 Z" fill="#e7d7b1" stroke="#3b1204" stroke-width="2.6" stroke-linejoin="round"/>`,
+        eyes: `
+          <path d="M130 84 L150 86" stroke="#3b1204" stroke-width="3.4" stroke-linecap="round"/>
+          <circle cx="141" cy="94" r="7.5" fill="#fef08a" stroke="#3b1204" stroke-width="2.4"/>
+          <circle cx="143" cy="94" r="3.8" fill="#09090b"/>
+          <circle cx="144.5" cy="92" r="1.8" fill="#ffffff"/>`
+      }
     },
+
+    /* 3. BRACHIOSAURUS */
     {
       id: "brachiosaurus",
       name: "브라키오사우루스",
@@ -105,53 +177,54 @@ window.DINO_DATA = (function () {
       specs: "키 약 13m · 몸길이 약 25m",
       soundDesc: "고래처럼 웅장하고 깊게 울려 퍼지는 공명음",
       fact: "아파트 4층 높이까지 고개를 들어 숲 꼭대기의 나뭇잎을 먹던 쥐라기 시대의 장엄한 거인 공룡이에요!",
-      cheer: ["높은 목표도 끝까지 올려다보며 달성!", "오늘 실력이 키처럼 쑥쑥 자라고 있어!", "차분하고 묵직하게 완주해보자!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M8 94 C22 86, 32 76, 40 66 C48 56, 62 54, 72 58 L82 18 C84 12, 92 10, 99 14 C104 17, 105 22, 98 25 L90 25 L88 70 L88 104 L76 104 L74 82 L54 84 L50 104 L38 104 L40 84 C26 90, 16 94, 8 94 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("bra", "#38bdf8")}
-        <defs>
-          <linearGradient id="sk-bra" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#648fa8"/>
-            <stop offset="48%" stop-color="#35566c"/>
-            <stop offset="100%" stop-color="#152633"/>
-          </linearGradient>
-          <linearGradient id="hl-bra" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.55"/>
-            <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <!-- Distant misty canopy -->
-        <path d="M0 165 Q60 150 130 164 T240 158 L240 240 L0 240 Z" fill="#0a1c19" opacity="0.65"/>
-        <!-- Rear legs (shadowed) -->
-        <path d="M52 162 L46 216 L66 216 L70 168 Z" fill="#182b38" stroke="#09131a" stroke-width="2.5"/>
-        <path d="M126 144 L124 216 L146 216 L148 152 Z" fill="#1b303f" stroke="#09131a" stroke-width="2.5"/>
-        <!-- Sweeping tail -->
-        <path d="M54 156 C26 168, 12 184, 4 198 C22 194, 42 184, 68 176 Z" fill="#284254" stroke="#09131a" stroke-width="2.5" stroke-linejoin="round"/>
-        <!-- Massive body + towering arched neck + crested head -->
-        <path d="M46 154 C48 124, 80 112, 124 114 C132 82, 144 46, 160 28 C166 20, 174 16, 184 22 C194 28, 206 32, 210 38 C212 44, 204 49, 192 48 L178 46 C168 68, 164 102, 166 138 C168 164, 146 180, 104 180 C68 180, 44 172, 46 154 Z" fill="url(#sk-bra)" stroke="#09131a" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Golden rim light along upper neck & crest -->
-        <path d="M125 113 C134 80, 146 46, 161 28 C168 20, 176 18, 185 23 C194 29, 204 33, 208 38" fill="none" stroke="#fde68a" stroke-width="2.4" opacity="0.65" stroke-linecap="round"/>
-        <!-- Skin wrinkles & mottled markings -->
-        <path d="M144 68 Q154 72 162 68 M139 88 Q151 92 161 88 M134 108 Q147 112 160 107" stroke="#162734" stroke-width="2.2" fill="none" opacity="0.7" stroke-linecap="round"/>
-        <ellipse cx="96" cy="134" rx="14" ry="7" fill="#7ea8bf" opacity="0.28"/>
-        <ellipse cx="122" cy="144" rx="11" ry="6" fill="#7ea8bf" opacity="0.24"/>
-        <ellipse cx="76" cy="148" rx="9" ry="5" fill="#7ea8bf" opacity="0.22"/>
-        <!-- Rib / muscle contour -->
-        <path d="M72 128 Q94 148 118 158 M136 128 Q152 146 152 166" stroke="#13222e" stroke-width="2.5" fill="none" opacity="0.55" stroke-linecap="round"/>
-        <!-- Front legs (prominent tall forelimbs characteristic of Brachiosaurus) -->
-        <path d="M62 164 L58 218 L80 218 L82 170 Z" fill="#2a4759" stroke="#09131a" stroke-width="2.6" stroke-linejoin="round"/>
-        <path d="M138 148 L138 218 L162 218 L162 152 Z" fill="url(#sk-bra)" stroke="#09131a" stroke-width="2.6" stroke-linejoin="round"/>
-        <!-- Claws / toenails -->
-        <path d="M60 216 L66 216 M140 216 L158 216" stroke="#cbd5e1" stroke-width="3" stroke-linecap="round"/>
-        <!-- Distinctive nasal dome crest, nostril & wise eye -->
-        <path d="M168 25 C175 18, 184 20, 188 28" fill="url(#hl-bra)"/>
-        <circle cx="182" cy="24" r="2.2" fill="#09131a"/>
-        <circle cx="176" cy="34" r="3.6" fill="#f59e0b" stroke="#09131a" stroke-width="1.5"/>
-        <circle cx="176.6" cy="34" r="1.5" fill="#09090b"/>
-        <path d="M188 44 Q198 45 206 42" stroke="#09131a" stroke-width="2" fill="none"/>
-      </svg>`
+      cheer: ["높은 목표도 끝까지 올려다보며 달성!", "실력이 브라키오 목처럼 쑥쑥 자라고 있어!", "차분하고 묵직하게 완주하자!"],
+      sprite: "./assets/sprites/dinos/brachiosaurus.png",
+      anchors: {
+        head: { x: 144, y: 20, r: 2, s: 0.72 },
+        face: { x: 151, y: 42, r: 2, s: 0.66 },
+        back: { x: 84, y: 118, r: -12, s: 0.96 },
+        roar: { x: 178, y: 54 }
+      },
+      landmarks: {
+        skullL: [134, 24], skullR: [164, 26],
+        eye1: [145, 42], eye2: [164, 38],
+        shield: [114, 134, -4, 0.62]
+      },
+      gearOverrides: {
+        back_cape: { dx: 4, dy: -16, dr: 4, s: 0.92 }
+      },
+      rig: {
+        defs: `<linearGradient id="sd-bra-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7dd3fc"/><stop offset="55%" stop-color="#0284c7"/><stop offset="100%" stop-color="#0c4a6e"/></linearGradient>`,
+        tailOrigin: "54px 136px",
+        headOrigin: "126px 80px",
+        jawOrigin: "144px 54px",
+        eyeOrigin: "146px 43px",
+        tail: `<path d="M56 132 C30 142, 16 154, 10 166 C28 164, 46 156, 68 148 Z" fill="#0284c7" stroke="#082f49" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `
+          <rect x="52" y="138" width="18" height="38" rx="7" fill="#0369a1" stroke="#082f49" stroke-width="3.2"/>
+          <rect x="108" y="128" width="18" height="48" rx="7" fill="#0369a1" stroke="#082f49" stroke-width="3.2"/>`,
+        body: `
+          <path d="M48 134 C50 104, 80 94, 114 98 L122 66 L142 74 L144 128 C144 150, 120 162, 86 162 C58 162, 46 150, 48 134 Z" fill="url(#sd-bra-b)" stroke="#082f49" stroke-width="3.6" stroke-linejoin="round"/>
+          <circle cx="76" cy="122" r="8" fill="#bae6fd" opacity="0.45"/>
+          <circle cx="98" cy="116" r="6.5" fill="#bae6fd" opacity="0.45"/>
+          <circle cx="94" cy="136" r="5.5" fill="#bae6fd" opacity="0.4"/>`,
+        frontLegs: `
+          <rect x="66" y="138" width="20" height="40" rx="8" fill="#0284c7" stroke="#082f49" stroke-width="3.4"/>
+          <rect x="120" y="124" width="21" height="54" rx="8" fill="#38bdf8" stroke="#082f49" stroke-width="3.4"/>
+          <path d="M70 176 L82 176 M124 176 L137 176" stroke="#e0f2fe" stroke-width="3.4" stroke-linecap="round"/>`,
+        jaw: `<path d="M142 54 L174 52 C172 60, 158 62, 142 60 Z" fill="#0369a1" stroke="#082f49" stroke-width="3" stroke-linejoin="round"/>`,
+        head: `
+          <path d="M118 82 L128 36 C132 22, 148 20, 158 30 C168 34, 178 40, 176 49 C174 55, 160 56, 146 54 L142 84 Z" fill="url(#sd-bra-b)" stroke="#082f49" stroke-width="3.5" stroke-linejoin="round"/>
+          <circle cx="144" cy="28" r="8" fill="#7dd3fc" stroke="#082f49" stroke-width="3"/>
+          <circle cx="150" cy="28" r="2" fill="#082f49"/>`,
+        eyes: `
+          <circle cx="147" cy="43" r="6" fill="#fef08a" stroke="#082f49" stroke-width="2.2"/>
+          <circle cx="148.5" cy="43" r="3" fill="#09090b"/>
+          <circle cx="149.8" cy="41.5" r="1.4" fill="#ffffff"/>`
+      }
     },
+
+    /* 4. STEGOSAURUS */
     {
       id: "stegosaurus",
       name: "스테고사우루스",
@@ -160,52 +233,64 @@ window.DINO_DATA = (function () {
       rarityLabel: "일반",
       color: "#a78bfa",
       era: "쥐라기 후기",
-      diet: "초식 공룡",
+      diet: "초식 갑옷",
       specs: "몸길이 약 9m · 꼬리 가시 4개",
       soundDesc: "낮은 초식 울음과 꼬리 가시가 공기를 가르는 소리",
       fact: "등에 늘어선 거대한 오각형 골판 17장으로 체온을 조절하고, 꼬리 끝 4개의 창 같은 가시로 포식자를 물리쳤어요!",
-      cheer: ["등판 갑옷 반짝! 오늘도 완벽 방어!", "꼬리 스파이크로 숙제 고민 싹 해결!", "꾸준함이 가장 강력한 무기야!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M8 72 L18 64 L10 56 L24 62 L20 52 L32 60 L38 40 L48 52 L58 26 L68 50 L78 32 L86 56 L94 46 L98 66 L112 72 C112 78, 104 80, 96 78 L88 80 L88 102 L76 102 L74 84 L52 84 L48 102 L36 102 L38 78 C24 78, 14 76, 8 72 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("ste", "#f59e0b")}
-        <defs>
-          <linearGradient id="sk-ste" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#5c6b4d"/><stop offset="60%" stop-color="#35402d"/><stop offset="100%" stop-color="#192116"/>
-          </linearGradient>
-          <linearGradient id="pl-ste" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#e07a5f"/><stop offset="60%" stop-color="#9b3d2b"/><stop offset="100%" stop-color="#471d16"/>
-          </linearGradient>
-        </defs>
-        <!-- Back row dorsal plates (darker) -->
-        <polygon points="74,114 82,66 96,108" fill="#6e2c22" stroke="#1b0d09" stroke-width="2.4" stroke-linejoin="round"/>
-        <polygon points="104,104 118,48 134,102" fill="#6e2c22" stroke="#1b0d09" stroke-width="2.4" stroke-linejoin="round"/>
-        <polygon points="140,108 156,64 168,116" fill="#6e2c22" stroke="#1b0d09" stroke-width="2.4" stroke-linejoin="round"/>
-        <!-- Front row dorsal plates with vascular grooves & amber rim -->
-        <polygon points="56,126 62,92 74,120" fill="url(#pl-ste)" stroke="#1b0d09" stroke-width="2.5" stroke-linejoin="round"/>
-        <polygon points="84,110 96,52 114,104" fill="url(#pl-ste)" stroke="#1b0d09" stroke-width="2.6" stroke-linejoin="round"/>
-        <polygon points="118,104 136,44 152,108" fill="url(#pl-ste)" stroke="#1b0d09" stroke-width="2.6" stroke-linejoin="round"/>
-        <polygon points="154,118 170,76 180,128" fill="url(#pl-ste)" stroke="#1b0d09" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M97 58 L98 100 M135 50 L135 100 M169 82 L168 122" stroke="#fde68a" stroke-width="1.6" opacity="0.45"/>
-        <!-- Thagomizer (4 lethal ivory tail spikes) -->
-        <path d="M26 144 L8 118 L34 136 Z" fill="#fef3c7" stroke="#26180d" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M36 140 L22 112 L46 134 Z" fill="#fde68a" stroke="#26180d" stroke-width="2.2" stroke-linejoin="round"/>
-        <path d="M24 150 L6 138 L32 148 Z" fill="#e7d7b1" stroke="#26180d" stroke-width="2"/>
-        <!-- Far legs -->
-        <path d="M74 166 L68 214 L88 214 L92 170 Z" fill="#20281b" stroke="#0d120b" stroke-width="2.5"/>
-        <path d="M150 172 L148 214 L166 214 L168 172 Z" fill="#20281b" stroke="#0d120b" stroke-width="2.5"/>
-        <!-- Muscular arched body + tail + small armored head -->
-        <path d="M22 146 C40 136, 56 122, 74 112 C102 96, 144 98, 174 124 C190 138, 202 146, 214 148 C224 150, 228 158, 222 164 C214 170, 200 168, 188 164 C172 178, 108 182, 68 168 C48 162, 32 154, 22 146 Z" fill="url(#sk-ste)" stroke="#0d120b" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Near legs -->
-        <path d="M84 164 L80 216 L104 216 L106 168 Z" fill="url(#sk-ste)" stroke="#0d120b" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M158 166 L158 216 L180 216 L180 164 Z" fill="url(#sk-ste)" stroke="#0d120b" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Scale folds & eye -->
-        <path d="M84 134 Q112 144 146 144 M102 152 Q128 158 154 154" stroke="#182014" stroke-width="2.4" fill="none" opacity="0.65" stroke-linecap="round"/>
-        <circle cx="208" cy="155" r="3.4" fill="#f59e0b" stroke="#0d120b" stroke-width="1.5"/>
-        <circle cx="208.5" cy="155" r="1.4" fill="#09090b"/>
-        <path d="M210 163 Q218 164 224 160" stroke="#0d120b" stroke-width="2" fill="none"/>
-      </svg>`
+      cheer: ["등판 갑옷 반짝! 오늘도 완벽 방어!", "꼬리 스파이크로 어려운 문제 해결!", "꾸준함이 가장 강력한 무기야!"],
+      sprite: "./assets/sprites/dinos/stegosaurus.png",
+      anchors: {
+        head: { x: 161, y: 108, r: 8, s: 0.62 },
+        face: { x: 167, y: 128, r: 4, s: 0.58 },
+        back: { x: 96, y: 96, r: -4, s: 0.90 },
+        roar: { x: 192, y: 142 }
+      },
+      landmarks: {
+        skullL: [146, 116], skullR: [176, 118],
+        eye1: [158, 130], eye2: [175, 126],
+        shield: [122, 134, -4, 0.58]
+      },
+      gearOverrides: {
+        back_cape: { dx: -4, dy: 12, dr: 0, s: 0.92 }
+      },
+      rig: {
+        defs: `
+          <linearGradient id="sd-ste-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#c4b5fd"/><stop offset="55%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#3b0764"/></linearGradient>
+          <linearGradient id="sd-ste-p" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#be123c"/></linearGradient>`,
+        tailOrigin: "54px 124px",
+        headOrigin: "148px 118px",
+        jawOrigin: "162px 128px",
+        eyeOrigin: "170px 118px",
+        tail: `
+          <polygon points="24,116 10,94 34,110" fill="#fef3c7" stroke="#3b0764" stroke-width="2.6" stroke-linejoin="round"/>
+          <polygon points="34,112 24,88 46,108" fill="#fde68a" stroke="#3b0764" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M56 128 C34 128, 20 124, 14 114 C28 112, 42 108, 60 104 Z" fill="#6d28d9" stroke="#2e1065" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `
+          <rect x="60" y="138" width="18" height="38" rx="7" fill="#4c1d95" stroke="#2e1065" stroke-width="3.2"/>
+          <rect x="116" y="142" width="18" height="34" rx="7" fill="#4c1d95" stroke="#2e1065" stroke-width="3.2"/>`,
+        body: `
+          <!-- Tall diamond armor plates -->
+          <polygon points="56,102 64,66 78,96" fill="url(#sd-ste-p)" stroke="#2e1065" stroke-width="3" stroke-linejoin="round"/>
+          <polygon points="78,90 92,42 108,88" fill="url(#sd-ste-p)" stroke="#2e1065" stroke-width="3.2" stroke-linejoin="round"/>
+          <polygon points="106,90 124,48 136,96" fill="url(#sd-ste-p)" stroke="#2e1065" stroke-width="3.2" stroke-linejoin="round"/>
+          <polygon points="132,102 146,72 154,112" fill="url(#sd-ste-p)" stroke="#2e1065" stroke-width="3" stroke-linejoin="round"/>
+          <!-- Arched armored body -->
+          <path d="M52 128 C54 90, 88 80, 122 86 C144 90, 156 106, 158 128 C148 154, 72 156, 52 128 Z" fill="url(#sd-ste-b)" stroke="#2e1065" stroke-width="3.6"/>
+          <path d="M74 104 Q104 96 134 108" fill="none" stroke="#ede9fe" stroke-width="2.4" opacity="0.5" stroke-linecap="round"/>`,
+        frontLegs: `
+          <rect x="74" y="138" width="20" height="40" rx="8" fill="#7c3aed" stroke="#2e1065" stroke-width="3.4"/>
+          <rect x="128" y="140" width="20" height="38" rx="8" fill="#a78bfa" stroke="#2e1065" stroke-width="3.4"/>`,
+        jaw: `<path d="M160 128 L184 128 C182 135, 170 136, 160 133 Z" fill="#5b21b6" stroke="#2e1065" stroke-width="2.8"/>`,
+        head: `
+          <path d="M146 112 C160 104, 182 108, 188 120 C188 128, 176 132, 158 128 L146 126 Z" fill="url(#sd-ste-b)" stroke="#2e1065" stroke-width="3.4" stroke-linejoin="round"/>`,
+        eyes: `
+          <circle cx="172" cy="118" r="5.5" fill="#fef08a" stroke="#2e1065" stroke-width="2"/>
+          <circle cx="173.5" cy="118" r="2.6" fill="#09090b"/>
+          <circle cx="174.5" cy="116.8" r="1.2" fill="#ffffff"/>`
+      }
     },
+
+    /* 5. VELOCIRAPTOR */
     {
       id: "velociraptor",
       name: "벨로시랩터",
@@ -218,43 +303,60 @@ window.DINO_DATA = (function () {
       specs: "몸길이 약 2m · 갈고리 발톱 7cm",
       soundDesc: "날카롭게 짖는 듯한 사냥 신호와 거친 숨소리",
       fact: "매우 똑똑한 두뇌와 낫처럼 휘어진 날카로운 발톱, 그리고 화려한 깃털을 지닌 백악기의 민첩한 사냥꾼이에요!",
-      cheer: ["번개처럼 집중해서 깔끔하게 돌파!", "똑똑한 랩터처럼 문제 척척 풀어내자!", "집중 모드 ON! 스피드 클리어!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M6 46 L48 60 C56 50, 68 48, 76 46 L82 26 C88 20, 102 22, 114 30 C112 36, 100 38, 90 38 L86 52 L98 62 L92 66 L82 60 C80 72, 72 78, 66 80 L76 102 L86 100 L72 106 L62 82 L52 80 L40 100 L30 102 L44 76 C34 70, 18 58, 6 46 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("rap", "#f59e0b")}
-        <defs>
-          <linearGradient id="sk-rap" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#b87638"/><stop offset="55%" stop-color="#6e411c"/><stop offset="100%" stop-color="#2b1709"/>
-          </linearGradient>
-        </defs>
-        <!-- Counter-balancing rigid tail + feathered tail fan -->
-        <path d="M12 86 L28 74 L42 86 L26 98 Z" fill="#9a3412" stroke="#1f0e06" stroke-width="2"/>
-        <path d="M18 82 L94 124 L84 140 L12 92 Z" fill="url(#sk-rap)" stroke="#1c0f06" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Rear running leg -->
-        <path d="M98 144 L76 184 L60 198 L82 204 L108 156 Z" fill="#472811" stroke="#1c0f06" stroke-width="2.6" stroke-linejoin="round"/>
-        <!-- Sleek predatory torso -->
-        <path d="M74 128 C84 102, 118 96, 146 108 C164 118, 160 144, 138 156 C112 168, 72 156, 74 128 Z" fill="url(#sk-rap)" stroke="#1c0f06" stroke-width="3"/>
-        <!-- Tiger predator stripes -->
-        <path d="M92 108 L102 126 M108 103 L116 124 M124 103 L130 124 M138 108 L142 126" stroke="#241106" stroke-width="4.5" stroke-linecap="round" opacity="0.8"/>
-        <!-- Feathered arm plumage & clawed hands -->
-        <path d="M142 132 L176 146 L166 164 L136 146 Z" fill="#9a3412" stroke="#1c0f06" stroke-width="2.4" stroke-linejoin="round"/>
-        <path d="M174 146 L186 154 M170 152 L180 162 M164 156 L172 166" stroke="#fef3c7" stroke-width="2.4" stroke-linecap="round"/>
-        <!-- Muscular near leg + iconic raised sickle claw! -->
-        <path d="M116 146 L132 194 L152 206 L122 210 L102 152 Z" fill="url(#sk-rap)" stroke="#1c0f06" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M148 202 C164 188, 168 200, 158 214" fill="none" stroke="#fef3c7" stroke-width="4.5" stroke-linecap="round"/>
-        <!-- Curved neck & fierce skull + crest feathers -->
-        <path d="M146 54 L130 34 L152 46 L146 28 L162 46 L162 32 L172 48" fill="#b91c1c" stroke="#1c0f06" stroke-width="2" stroke-linejoin="round"/>
-        <path d="M126 106 L142 64 C148 48, 170 44, 200 54 C218 60, 224 72, 212 80 L176 78 L204 88 C196 96, 176 96, 162 88 L152 114 Z" fill="url(#sk-rap)" stroke="#1c0f06" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Open jaw & needle teeth -->
-        <path d="M174 75 L212 78 L202 88 L172 84 Z" fill="#5c1a1a"/>
-        <path d="M180 76 L183 83 L186 76 M190 77 L193 84 L196 77 M200 78 L203 84 L206 78" fill="#fef9c3"/>
-        <!-- Piercing amber slit eye + golden rim highlight -->
-        <path d="M150 52 C168 46, 194 52, 214 64" fill="none" stroke="#fde68a" stroke-width="2.2" opacity="0.65" stroke-linecap="round"/>
-        <circle cx="174" cy="62" r="5.5" fill="#fbbf24" stroke="#1c0f06" stroke-width="1.8"/>
-        <ellipse cx="174.5" cy="62" rx="1.4" ry="4.4" fill="#09090b"/>
-      </svg>`
+      cheer: ["번개처럼 집중해서 스피드 클리어!", "똑똑한 랩터처럼 문제 척척!", "집중 모드 ON! 단숨에 해치우자!"],
+      sprite: "./assets/sprites/dinos/velociraptor.png",
+      anchors: {
+        head: { x: 135, y: 24, r: 4, s: 0.80 },
+        face: { x: 145, y: 48, r: 4, s: 0.76 },
+        back: { x: 88, y: 94, r: -16, s: 0.88 },
+        roar: { x: 182, y: 66 }
+      },
+      landmarks: {
+        skullL: [124, 38], skullR: [162, 40],
+        eye1: [141, 52], eye2: [163, 47],
+        shield: [130, 136, -8, 0.54]
+      },
+      gearOverrides: {
+        back_cape: { dx: 10, dy: -4, dr: 4, s: 0.96 }
+      },
+      rig: {
+        defs: `<linearGradient id="sd-rap-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fde047"/><stop offset="55%" stop-color="#ca8a04"/><stop offset="100%" stop-color="#713f12"/></linearGradient>`,
+        tailOrigin: "72px 116px",
+        headOrigin: "112px 86px",
+        jawOrigin: "130px 76px",
+        eyeOrigin: "140px 58px",
+        tail: `
+          <path d="M18 74 L8 62 L24 68 L14 82 Z" fill="#ef4444" stroke="#450a0a" stroke-width="2.2" stroke-linejoin="round"/>
+          <path d="M74 118 L14 78 L20 68 L80 102 Z" fill="#ca8a04" stroke="#422006" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M84 134 L64 168 L52 174 L74 177 L94 140 Z" fill="#854d0e" stroke="#422006" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <path d="M68 114 C74 90, 102 84, 128 96 C144 106, 140 132, 120 142 C96 150, 66 138, 68 114 Z" fill="url(#sd-rap-b)" stroke="#422006" stroke-width="3.6"/>
+          <path d="M84 94 L92 112 M98 91 L104 110 M112 93 L116 112" stroke="#422006" stroke-width="4" stroke-linecap="round"/>`,
+        frontLegs: `
+          <!-- Feathered slashing arms -->
+          <path d="M124 114 L148 124 L140 134 L118 126 Z" fill="#ef4444" stroke="#422006" stroke-width="2.8" stroke-linejoin="round"/>
+          <!-- Running foreground leg + iconic curved sickle claw -->
+          <path d="M104 134 L116 170 L134 176 L104 178 L92 138 Z" fill="url(#sd-rap-b)" stroke="#422006" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M132 172 C144 160, 148 170, 140 180" fill="none" stroke="#fef9c3" stroke-width="4" stroke-linecap="round"/>`,
+        jaw: `
+          <path d="M128 74 L176 74 C174 83, 158 86, 126 84 Z" fill="#a16207" stroke="#422006" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M136 75 L170 76 L166 82 L134 81 Z" fill="#7f1d1d"/>`,
+        head: `
+          <!-- Sleek raptor crest feathers -->
+          <path d="M122 48 L108 32 L128 42 L124 28 L138 42" fill="#ef4444" stroke="#422006" stroke-width="2.4" stroke-linejoin="round"/>
+          <path d="M108 92 L118 54 C124 40, 146 38, 174 50 C186 56, 188 68, 176 74 L132 74 L126 98 Z" fill="url(#sd-rap-b)" stroke="#422006" stroke-width="3.5" stroke-linejoin="round"/>
+          <polygon points="144,73 147,80 150,73" fill="#fffbeb"/>
+          <polygon points="154,73 157,80 160,73" fill="#fffbeb"/>
+          <polygon points="164,72 167,79 170,72" fill="#fffbeb"/>`,
+        eyes: `
+          <path d="M130 50 L150 54" stroke="#422006" stroke-width="3.2" stroke-linecap="round"/>
+          <circle cx="141" cy="59" r="7.2" fill="#fbbf24" stroke="#422006" stroke-width="2.4"/>
+          <ellipse cx="142.5" cy="59" rx="2.2" ry="5.4" fill="#09090b"/>
+          <circle cx="144" cy="56.5" r="1.8" fill="#ffffff"/>`
+      }
     },
+
+    /* 6. PTERANODON */
     {
       id: "pteranodon",
       name: "프테라노돈",
@@ -267,45 +369,53 @@ window.DINO_DATA = (function () {
       specs: "날개폭 약 7m · 하늘의 익룡",
       soundDesc: "높은 하늘을 가르는 날카로운 맹금류 비명과 바람 소리",
       fact: "날개를 펼치면 버스만큼 크고, 이빨이 없는 날카로운 부리로 바다 위를 활공하며 물고기를 낚아채는 익룡이에요!",
-      cheer: ["하늘을 가르듯 시원하게 퀘스트 클리어!", "넓은 날개로 목표까지 단숨에 날아가자!", "상공에서 지섭 탐험가를 응원 중!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M8 34 L50 54 L26 26 L62 42 L106 54 L68 58 L112 28 C108 54, 92 70, 68 72 L66 86 L54 86 L52 72 C28 70, 12 56, 8 34 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("pte", "#2dd4bf")}
-        <defs>
-          <linearGradient id="wg-pte" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#3b7a75"/><stop offset="60%" stop-color="#1d4547"/><stop offset="100%" stop-color="#0d2226"/>
-          </linearGradient>
-          <linearGradient id="bk-pte" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stop-color="#d97706"/><stop offset="100%" stop-color="#fef08a"/>
-          </linearGradient>
-        </defs>
-        <!-- Left soaring wing with fibrous wing ribs -->
-        <path d="M108 118 L12 54 C14 102, 34 134, 96 140 Z" fill="url(#wg-pte)" stroke="#08171a" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M104 120 L22 66 M96 126 L34 94 M88 134 L54 120" stroke="#0d2629" stroke-width="2" opacity="0.65"/>
-        <path d="M14 56 L106 116" stroke="#99f6e4" stroke-width="2.2" opacity="0.55" stroke-linecap="round"/>
-        <!-- Right soaring wing -->
-        <path d="M132 118 L228 46 C224 98, 202 134, 144 140 Z" fill="url(#wg-pte)" stroke="#08171a" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M136 120 L218 58 M144 128 L206 88 M152 134 L184 118" stroke="#0d2629" stroke-width="2" opacity="0.65"/>
-        <path d="M226 48 L134 116" stroke="#fde68a" stroke-width="2.4" opacity="0.65" stroke-linecap="round"/>
-        <!-- Clawed wing tips -->
-        <path d="M46 74 L40 64 M192 70 L200 60" stroke="#fef3c7" stroke-width="2.5" stroke-linecap="round"/>
-        <!-- Feet -->
-        <path d="M108 158 L98 188 L108 184 M132 158 L142 188 L132 184" stroke="#b45309" stroke-width="4" fill="none" stroke-linecap="round"/>
-        <!-- Streamlined body -->
-        <path d="M100 122 C100 100, 140 100, 140 122 C142 150, 132 168, 120 168 C108 168, 98 150, 100 122 Z" fill="#235456" stroke="#08171a" stroke-width="2.8"/>
-        <!-- Sweeping aerodynamic backward crest & long dagger beak -->
-        <path d="M106 96 L44 50 L122 76 C134 74, 148 82, 152 94 L224 114 L144 114 C126 118, 108 110, 106 96 Z" fill="#1f4d52" stroke="#08171a" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Striking orange-gold crest stripe -->
-        <path d="M56 58 L120 80 L114 88 L56 58 Z" fill="#f59e0b" opacity="0.85"/>
-        <!-- Sharp toothless beak -->
-        <path d="M148 92 L224 114 L144 112 Z" fill="url(#bk-pte)" stroke="#08171a" stroke-width="2.4" stroke-linejoin="round"/>
-        <path d="M150 104 L216 114" stroke="#78350f" stroke-width="1.8"/>
-        <!-- Sharp predator eye -->
-        <circle cx="134" cy="92" r="5" fill="#fbbf24" stroke="#08171a" stroke-width="1.8"/>
-        <circle cx="135" cy="92" r="2.2" fill="#09090b"/>
-      </svg>`
+      cheer: ["하늘을 가르듯 시원하게 퀘스트 클리어!", "넓은 날개로 목표까지 단숨에!", "상공에서 지섭 탐험가를 응원 중!"],
+      sprite: "./assets/sprites/dinos/pteranodon.png",
+      anchors: {
+        head: { x: 128, y: 69, r: 10, s: 0.72 },
+        face: { x: 138, y: 92, r: 16, s: 0.68 },
+        back: { x: 102, y: 108, r: -6, s: 0.76 },
+        roar: { x: 186, y: 112 }
+      },
+      landmarks: {
+        skullL: [120, 82], skullR: [148, 86],
+        eye1: [131, 93], eye2: [148, 92],
+        shield: [118, 128, -8, 0.48]
+      },
+      gearOverrides: {
+        back_cape: { dx: 2, dy: 4, dr: 2, s: 0.90 },
+        back_jetpack: { dx: -2, dy: 4, s: 0.88 },
+        back_wings: { dx: -4, dy: -4, s: 0.95 }
+      },
+      rig: {
+        defs: `<linearGradient id="sd-pte-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5eead4"/><stop offset="55%" stop-color="#0d9488"/><stop offset="100%" stop-color="#134e4a"/></linearGradient>`,
+        tailOrigin: "100px 110px",
+        headOrigin: "100px 92px",
+        jawOrigin: "120px 88px",
+        eyeOrigin: "110px 76px",
+        tail: `
+          <!-- Left sweeping wing (animated!) -->
+          <path class="sd-wing-flap" d="M88 106 L14 54 C18 96, 38 122, 82 126 Z" fill="#0f766e" stroke="#042f2e" stroke-width="3.4" stroke-linejoin="round"/>
+          <!-- Right sweeping wing -->
+          <path class="sd-wing-flap-r" d="M112 106 L188 46 C184 92, 162 122, 118 126 Z" fill="#14b8a6" stroke="#042f2e" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M88 136 L78 164 L88 160 M112 136 L122 164 L112 160" stroke="#f59e0b" stroke-width="5" fill="none" stroke-linecap="round"/>`,
+        body: `
+          <ellipse cx="100" cy="116" rx="22" ry="28" fill="url(#sd-pte-b)" stroke="#042f2e" stroke-width="3.6"/>
+          <ellipse cx="100" cy="120" rx="12" ry="18" fill="#ccfbf1" opacity="0.8"/>`,
+        frontLegs: ``,
+        jaw: `<path d="M118 88 L178 96 L116 98 Z" fill="#d97706" stroke="#042f2e" stroke-width="3" stroke-linejoin="round"/>`,
+        head: `
+          <path d="M84 78 L42 44 L104 62 C116 60, 128 68, 128 78 L184 90 L118 92 C100 96, 86 88, 84 78 Z" fill="url(#sd-pte-b)" stroke="#042f2e" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M52 50 L102 68 L96 74 Z" fill="#fbbf24"/>
+          <path d="M124 76 L184 90 L120 90 Z" fill="#fbbf24" stroke="#042f2e" stroke-width="2.8" stroke-linejoin="round"/>`,
+        eyes: `
+          <circle cx="110" cy="76" r="7" fill="#fef08a" stroke="#042f2e" stroke-width="2.4"/>
+          <circle cx="111.5" cy="76" r="3.4" fill="#09090b"/>
+          <circle cx="113" cy="74" r="1.5" fill="#ffffff"/>`
+      }
     },
+
+    /* 7. ANKYLOSAURUS */
     {
       id: "ankylosaurus",
       name: "안킬로사우루스",
@@ -318,48 +428,54 @@ window.DINO_DATA = (function () {
       specs: "몸길이 약 8m · 뼈 곤봉 꼬리",
       soundDesc: "육중한 저음 울림과 땅을 울리는 곤봉 꼬리 충격음",
       fact: "눈꺼풀까지 단단한 뼈 갑옷으로 덮여 있고, 꼬리 끝 거대한 뼈 곤봉으로 티라노의 다리도 부러뜨릴 수 있었어요!",
-      cheer: ["단단한 집중력 갑옷 장착 완료!", "곤봉 꼬리 한 방으로 어려운 문제 돌파!", "끝까지 버티는 탱커 정신!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M8 74 C8 68, 18 66, 22 72 L36 72 C40 54, 58 46, 78 48 C90 50, 96 58, 102 64 C110 64, 114 70, 112 78 C108 84, 98 84, 92 82 L92 100 L80 100 L78 86 L56 86 L52 100 L40 100 L40 82 L22 78 C16 82, 8 80, 8 74 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("ank", "#a3e635")}
-        <defs>
-          <linearGradient id="sk-ank" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#6b7a4a"/><stop offset="55%" stop-color="#3f4a2b"/><stop offset="100%" stop-color="#1b2213"/>
-          </linearGradient>
-        </defs>
-        <!-- Heavy tail & massive bone club -->
-        <path d="M72 154 L30 148" stroke="#364024" stroke-width="14" stroke-linecap="round"/>
-        <ellipse cx="26" cy="146" rx="20" ry="15" fill="#9c8b63" stroke="#1b2112" stroke-width="3"/>
-        <path d="M16 142 Q26 136 38 142 M16 150 Q26 156 38 150" stroke="#4f4631" stroke-width="2.2" fill="none"/>
-        <!-- Far legs -->
-        <path d="M72 174 L68 212 L88 212 L90 176 Z" fill="#232b17" stroke="#0f140a" stroke-width="2.5"/>
-        <path d="M148 176 L146 212 L166 212 L168 176 Z" fill="#232b17" stroke="#0f140a" stroke-width="2.5"/>
-        <!-- Back & shoulder osteoderm armor spikes -->
-        <polygon points="78,120 88,92 100,118" fill="#d6c596" stroke="#1b2112" stroke-width="2.4" stroke-linejoin="round"/>
-        <polygon points="108,112 120,82 134,112" fill="#d6c596" stroke="#1b2112" stroke-width="2.4" stroke-linejoin="round"/>
-        <polygon points="142,116 154,88 166,120" fill="#d6c596" stroke="#1b2112" stroke-width="2.4" stroke-linejoin="round"/>
-        <!-- Armored dome carapace -->
-        <path d="M56 164 C58 118, 94 102, 134 104 C170 106, 194 128, 194 164 C194 178, 174 182, 126 182 C78 182, 56 178, 56 164 Z" fill="url(#sk-ank)" stroke="#0f140a" stroke-width="3"/>
-        <!-- Rows of bony armor scutes -->
-        <g fill="#4f5c35" stroke="#1b2112" stroke-width="2">
-          <ellipse cx="92" cy="136" rx="13" ry="8"/><ellipse cx="124" cy="130" rx="15" ry="9"/><ellipse cx="156" cy="136" rx="13" ry="8"/>
-          <ellipse cx="86" cy="156" rx="12" ry="7"/><ellipse cx="118" cy="154" rx="14" ry="8"/><ellipse cx="150" cy="156" rx="13" ry="7"/>
-        </g>
-        <!-- Lateral spikes along rim -->
-        <polygon points="62,158 46,166 68,170" fill="#e5d6ac" stroke="#1b2112" stroke-width="2"/>
-        <polygon points="174,148 192,156 176,164" fill="#e5d6ac" stroke="#1b2112" stroke-width="2"/>
-        <!-- Near legs -->
-        <path d="M84 174 L82 214 L106 214 L108 176 Z" fill="url(#sk-ank)" stroke="#0f140a" stroke-width="2.8" stroke-linejoin="round"/>
-        <path d="M160 174 L160 214 L184 214 L184 174 Z" fill="url(#sk-ank)" stroke="#0f140a" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Horned armored triangular head -->
-        <path d="M180 132 L172 118 L192 130 Z" fill="#e5d6ac" stroke="#1b2112" stroke-width="2"/>
-        <path d="M174 134 C192 128, 218 134, 226 154 C228 168, 216 176, 198 176 L176 170 Z" fill="url(#sk-ank)" stroke="#0f140a" stroke-width="3" stroke-linejoin="round"/>
-        <circle cx="204" cy="150" r="4.2" fill="#f59e0b" stroke="#0f140a" stroke-width="1.6"/>
-        <circle cx="204.5" cy="150" r="1.8" fill="#09090b"/>
-        <path d="M206 165 Q216 166 224 161" stroke="#0f140a" stroke-width="2.2" fill="none"/>
-      </svg>`
+      cheer: ["단단한 집중력 갑옷 장착 완료!", "곤봉 꼬리 한 방으로 어려운 문제 돌파!", "흔들리지 않는 최강 탱커!"],
+      sprite: "./assets/sprites/dinos/ankylosaurus.png",
+      anchors: {
+        head: { x: 154, y: 101, r: 8, s: 0.76 },
+        face: { x: 160, y: 132, r: 6, s: 0.72 },
+        back: { x: 96, y: 98, r: -4, s: 0.90 },
+        roar: { x: 190, y: 144 }
+      },
+      landmarks: {
+        skullL: [138, 112], skullR: [176, 116],
+        eye1: [152, 132], eye2: [173, 129],
+        shield: [116, 140, -4, 0.58]
+      },
+      rig: {
+        defs: `<linearGradient id="sd-ank-b" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#bef264"/><stop offset="55%" stop-color="#65a30d"/><stop offset="100%" stop-color="#365314"/></linearGradient>`,
+        tailOrigin: "54px 132px",
+        headOrigin: "146px 124px",
+        jawOrigin: "158px 136px",
+        eyeOrigin: "168px 120px",
+        tail: `
+          <path d="M56 132 L24 126" stroke="#3f6212" stroke-width="11" stroke-linecap="round"/>
+          <ellipse cx="22" cy="125" rx="15" ry="12" fill="#eab308" stroke="#1a2e05" stroke-width="3.2"/>`,
+        backLegs: `
+          <rect x="56" y="142" width="18" height="34" rx="7" fill="#3f6212" stroke="#1a2e05" stroke-width="3.2"/>
+          <rect x="114" y="142" width="18" height="34" rx="7" fill="#3f6212" stroke="#1a2e05" stroke-width="3.2"/>`,
+        body: `
+          <polygon points="70,98 78,74 88,96" fill="#fef08a" stroke="#1a2e05" stroke-width="2.6" stroke-linejoin="round"/>
+          <polygon points="94,90 104,66 116,90" fill="#fef08a" stroke="#1a2e05" stroke-width="2.6" stroke-linejoin="round"/>
+          <polygon points="122,94 132,74 142,98" fill="#fef08a" stroke="#1a2e05" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M48 134 C50 96, 78 84, 110 86 C138 88, 158 106, 158 134 C158 148, 138 152, 102 152 C66 152, 48 148, 48 134 Z" fill="url(#sd-ank-b)" stroke="#1a2e05" stroke-width="3.6"/>
+          <ellipse cx="82" cy="116" rx="10" ry="6" fill="#3f6212" opacity="0.6"/>
+          <ellipse cx="108" cy="112" rx="12" ry="7" fill="#3f6212" opacity="0.6"/>
+          <ellipse cx="132" cy="118" rx="10" ry="6" fill="#3f6212" opacity="0.6"/>`,
+        frontLegs: `
+          <rect x="70" y="142" width="20" height="36" rx="8" fill="#65a30d" stroke="#1a2e05" stroke-width="3.4"/>
+          <rect x="126" y="142" width="20" height="36" rx="8" fill="#84cc16" stroke="#1a2e05" stroke-width="3.4"/>`,
+        jaw: `<path d="M158 136 L186 134 C184 143, 170 144, 156 142 Z" fill="#4d7c0f" stroke="#1a2e05" stroke-width="3"/>`,
+        head: `
+          <path d="M150 108 L142 96 L160 106 Z" fill="#fef08a" stroke="#1a2e05" stroke-width="2.4"/>
+          <path d="M146 110 C162 104, 184 110, 188 124 C188 134, 176 138, 158 136 L144 132 Z" fill="url(#sd-ank-b)" stroke="#1a2e05" stroke-width="3.5" stroke-linejoin="round"/>`,
+        eyes: `
+          <circle cx="169" cy="121" r="6" fill="#fef08a" stroke="#1a2e05" stroke-width="2.2"/>
+          <circle cx="170.5" cy="121" r="3" fill="#09090b"/>
+          <circle cx="171.8" cy="119.5" r="1.4" fill="#ffffff"/>`
+      }
     },
+
+    /* 8. PARASAUROLOPHUS */
     {
       id: "parasaurolophus",
       name: "파라사우롤로푸스",
@@ -373,10 +489,45 @@ window.DINO_DATA = (function () {
       soundDesc: "속이 빈 머리 볏을 통해 울리는 신비로운 저음 나팔 공명음",
       fact: "머리의 속이 빈 기다란 튜브 모양 볏으로 트롬본처럼 깊고 멀리 퍼지는 소리를 내며 무리와 대화했어요!",
       cheer: ["뿌우~ 오늘의 퀘스트 개시 신호!", "신나는 리듬으로 숙제 완주하자!", "완료하면 웅장한 축하 나팔 불어줄게!"],
-      img: "./assets/dinos/parasaurolophus.jpg",
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M10 68 C24 68, 36 62, 46 52 C56 44, 68 44, 72 34 L34 16 C32 12, 36 10, 42 12 L80 24 C92 26, 106 32, 106 40 C106 46, 94 48, 84 46 L78 62 C82 74, 78 84, 72 88 L76 104 L64 104 L60 88 L50 88 L46 104 L34 104 L40 82 C26 78, 16 74, 10 68 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">${jungleBg("par", "#fb923c")}</svg>`
+      sprite: "./assets/sprites/dinos/parasaurolophus.png",
+      anchors: {
+        head: { x: 147, y: 34, r: 6, s: 0.76 },
+        face: { x: 153, y: 55, r: 6, s: 0.72 },
+        back: { x: 88, y: 104, r: -14, s: 0.92 },
+        roar: { x: 186, y: 74 }
+      },
+      landmarks: {
+        skullL: [134, 42], skullR: [162, 46],
+        eye1: [148, 60], eye2: [166, 56],
+        shield: [124, 140, -10, 0.54]
+      },
+      rig: {
+        defs: `<linearGradient id="sd-par-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f472b6"/><stop offset="55%" stop-color="#be185d"/><stop offset="100%" stop-color="#500724"/></linearGradient>`,
+        tailOrigin: "64px 134px",
+        headOrigin: "106px 96px",
+        jawOrigin: "132px 78px",
+        eyeOrigin: "134px 62px",
+        tail: `<path d="M66 130 C38 134, 22 122, 16 108 C30 114, 46 114, 70 112 Z" fill="#be185d" stroke="#500724" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M74 142 L68 174 L56 176 L80 178 L88 144 Z" fill="#831843" stroke="#500724" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <path d="M62 114 C64 88, 90 82, 116 90 C134 98, 136 126, 124 144 C112 160, 74 158, 62 114 Z" fill="url(#sd-par-b)" stroke="#500724" stroke-width="3.6"/>
+          <path d="M90 104 C108 108, 116 126, 108 144 C98 152, 86 148, 84 130 Z" fill="#fce7f3" opacity="0.85"/>`,
+        frontLegs: `
+          <path d="M104 142 L108 174 L124 176 L98 178 L92 144 Z" fill="url(#sd-par-b)" stroke="#500724" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M122 114 L138 122 L134 128 L118 122 Z" fill="#f472b6" stroke="#500724" stroke-width="2.8" stroke-linejoin="round"/>`,
+        jaw: `<path d="M132 76 L168 78 C166 86, 150 88, 130 84 Z" fill="#9d174d" stroke="#500724" stroke-width="3"/>`,
+        head: `
+          <!-- Iconic sweeping hollow trumpet crest! -->
+          <path d="M102 98 L112 58 L56 32 C50 28, 54 19, 64 22 L126 44 C146 48, 168 58, 170 70 C170 78, 154 82, 134 78 L124 102 Z" fill="url(#sd-par-b)" stroke="#500724" stroke-width="3.5" stroke-linejoin="round"/>
+          <path d="M64 27 L126 49 L122 55 L62 33 Z" fill="#fef08a" opacity="0.85"/>`,
+        eyes: `
+          <circle cx="134" cy="63" r="6.8" fill="#fef08a" stroke="#500724" stroke-width="2.4"/>
+          <circle cx="135.5" cy="63" r="3.4" fill="#09090b"/>
+          <circle cx="137" cy="61" r="1.6" fill="#ffffff"/>`
+      }
     },
+
+    /* 9. SPINOSAURUS (Rare) */
     {
       id: "spinosaurus",
       name: "스피노사우루스",
@@ -390,43 +541,54 @@ window.DINO_DATA = (function () {
       soundDesc: "악어와 거대 포식자가 섞인 깊고 젖은 초저음 메가 포효",
       fact: "티라노사우루스보다도 몸이 길며, 거대한 등 돛과 악어 같은 주둥이로 강과 땅을 모두 지배한 초대형 포식자예요!",
       cheer: ["거대한 등 돛 펼치고 대모험 출발!", "희귀 공룡 스피노가 뒤를 지켜줄게!", "오늘 올클리어하면 코인이 쏟아진다!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M8 62 C20 62, 30 60, 36 56 C32 28, 52 16, 70 26 C78 31, 80 44, 76 52 L82 32 L114 38 C114 44, 104 46, 90 46 L82 58 L92 68 L84 72 L76 66 C78 78, 72 86, 66 90 L72 104 L60 104 L56 88 L48 88 L44 104 L32 104 L38 82 C24 76, 14 70, 8 62 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("spi", "#06b6d4")}
-        <defs>
-          <linearGradient id="sk-spi" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#2e6f7a"/><stop offset="55%" stop-color="#183f4a"/><stop offset="100%" stop-color="#0b1f26"/>
-          </linearGradient>
-          <linearGradient id="sl-spi" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ea580c"/><stop offset="45%" stop-color="#b91c1c"/><stop offset="100%" stop-color="#1e3a44"/>
-          </linearGradient>
-        </defs>
-        <!-- Iconic giant veined dorsal sail -->
-        <path d="M46 130 C38 66, 76 26, 122 44 C146 54, 152 88, 142 114 Z" fill="url(#sl-spi)" stroke="#091a20" stroke-width="3" stroke-linejoin="round"/>
-        <path d="M64 124 L62 62 M80 120 L82 44 M98 118 L104 42 M116 116 L124 52 M132 114 L138 74" stroke="#450a0a" stroke-width="3" opacity="0.65"/>
-        <path d="M52 72 C74 36, 114 34, 138 58" fill="none" stroke="#fde68a" stroke-width="2.6" opacity="0.7" stroke-linecap="round"/>
-        <!-- Paddle-like swimming tail -->
-        <path d="M58 148 C30 152, 14 142, 6 124 C18 128, 34 130, 62 126 Z" fill="#183f4a" stroke="#091a20" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Far leg -->
-        <path d="M84 162 L76 212 L96 212 L102 166 Z" fill="#0e2730" stroke="#071317" stroke-width="2.5"/>
-        <!-- Torso -->
-        <path d="M54 136 C60 108, 102 100, 144 114 C166 122, 168 154, 148 170 C124 184, 68 176, 54 136 Z" fill="url(#sk-spi)" stroke="#071317" stroke-width="3"/>
-        <!-- Heavy clawed forelimb -->
-        <path d="M142 142 L170 164 L158 176 L136 154 Z" fill="#235763" stroke="#071317" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M168 164 L178 174 M162 170 L170 182" stroke="#fef3c7" stroke-width="3" stroke-linecap="round"/>
-        <!-- Near leg -->
-        <path d="M114 162 L120 214 L144 214 L134 164 Z" fill="url(#sk-spi)" stroke="#071317" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Long crocodilian skull + conical teeth + crest -->
-        <path d="M136 112 L146 68 C154 54, 174 52, 194 60 L228 74 C232 80, 228 88, 214 90 L174 88 L212 98 C206 106, 184 106, 168 98 L160 120 Z" fill="url(#sk-spi)" stroke="#071317" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Roaring mouth & conical fish-catching teeth -->
-        <path d="M174 84 L222 88 L210 98 L172 93 Z" fill="#5c1a1a"/>
-        <path d="M180 86 L183 94 L186 86 M190 86 L193 95 L196 86 M200 87 L203 95 L206 87 M210 87 L213 94 L216 87" fill="#fef9c3"/>
-        <path d="M176 58 L188 52 L196 60 Z" fill="#f59e0b" stroke="#071317" stroke-width="1.8"/>
-        <circle cx="170" cy="70" r="5" fill="#fbbf24" stroke="#071317" stroke-width="1.8"/>
-        <ellipse cx="170.5" cy="70" rx="1.4" ry="4" fill="#09090b"/>
-      </svg>`
+      sprite: "./assets/sprites/dinos/spinosaurus.png",
+      anchors: {
+        head: { x: 142, y: 48, r: 4, s: 0.78 },
+        face: { x: 148, y: 63, r: 4, s: 0.76 },
+        back: { x: 84, y: 92, r: -10, s: 0.92 },
+        roar: { x: 188, y: 80 }
+      },
+      landmarks: {
+        skullL: [124, 52], skullR: [158, 52],
+        eye1: [142, 62], eye2: [158, 59],
+        shield: [118, 136, -10, 0.54]
+      },
+      rig: {
+        defs: `
+          <linearGradient id="sd-spi-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#22d3ee"/><stop offset="55%" stop-color="#0e7490"/><stop offset="100%" stop-color="#083344"/></linearGradient>
+          <linearGradient id="sd-spi-s" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fb7185"/><stop offset="55%" stop-color="#f97316"/><stop offset="100%" stop-color="#0e7490"/></linearGradient>`,
+        tailOrigin: "58px 132px",
+        headOrigin: "112px 96px",
+        jawOrigin: "132px 82px",
+        eyeOrigin: "140px 66px",
+        tail: `<path d="M60 130 C32 136, 16 124, 10 106 C24 114, 42 116, 66 112 Z" fill="#0e7490" stroke="#083344" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M74 142 L68 174 L56 176 L80 178 L88 146 Z" fill="#155e75" stroke="#083344" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <!-- Giant veined dorsal sail -->
+          <path d="M52 110 C44 54, 82 28, 114 48 C128 58, 130 84, 122 102 Z" fill="url(#sd-spi-s)" stroke="#083344" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M68 104 L68 54 M84 102 L88 42 M100 100 L106 48" stroke="#7c2d12" stroke-width="2.6" opacity="0.65"/>
+          <path d="M54 118 C58 92, 88 86, 120 96 C138 104, 140 132, 124 148 C104 162, 62 154, 54 118 Z" fill="url(#sd-spi-b)" stroke="#083344" stroke-width="3.6"/>`,
+        frontLegs: `
+          <path d="M104 142 L110 174 L126 176 L98 178 L92 144 Z" fill="url(#sd-spi-b)" stroke="#083344" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M124 118 L146 130 L138 138 L118 128 Z" fill="#22d3ee" stroke="#083344" stroke-width="3" stroke-linejoin="round"/>`,
+        jaw: `
+          <path d="M130 82 L186 84 C184 92, 166 94, 128 92 Z" fill="#155e75" stroke="#083344" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M138 83 L180 85 L176 90 L136 89 Z" fill="#7f1d1d"/>`,
+        head: `
+          <path d="M114 98 L124 62 C130 48, 148 48, 166 56 L190 66 C194 72, 190 80, 178 82 L134 82 L126 104 Z" fill="url(#sd-spi-b)" stroke="#083344" stroke-width="3.5" stroke-linejoin="round"/>
+          <polygon points="152,81 155,89 158,81" fill="#fffbeb"/>
+          <polygon points="164,81 167,89 170,81" fill="#fffbeb"/>
+          <polygon points="176,80 179,88 182,80" fill="#fffbeb"/>
+          <polygon points="148,51 156,43 162,54" fill="#fbbf24" stroke="#083344" stroke-width="2"/>`,
+        eyes: `
+          <path d="M132 58 L150 61" stroke="#083344" stroke-width="3.2" stroke-linecap="round"/>
+          <circle cx="142" cy="67" r="6.8" fill="#fbbf24" stroke="#083344" stroke-width="2.4"/>
+          <ellipse cx="143.5" cy="67" rx="2.2" ry="5" fill="#09090b"/>
+          <circle cx="145" cy="64.5" r="1.7" fill="#ffffff"/>`
+      }
     },
+
+    /* 10. CARNOTAURUS (Rare) */
     {
       id: "carnotaurus",
       name: "카르노타우루스",
@@ -439,42 +601,52 @@ window.DINO_DATA = (function () {
       specs: "몸길이 약 8m · 시속 50km 질주",
       soundDesc: "사납게 두 번 짖어대는 포식자의 날카로운 으르렁거림",
       fact: "눈 위에 굵은 황소 뿔 두 개가 돋아 있고, 육식 공룡 중 손꼽히는 빠른 속도로 먹이를 추격하던 불꽃 질주자예요!",
-      cheer: ["황소 뿔 파워로 오늘 숙제 정면 돌파!", "불꽃처럼 멋지게 집중해보자!", "최강의 속도로 오늘 미션 완료!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M10 64 C24 64, 34 58, 44 50 C52 40, 62 34, 70 28 L64 14 L76 22 L84 12 L86 24 C96 26, 104 34, 102 44 C100 50, 90 52, 78 52 L74 64 C78 76, 72 84, 66 90 L74 104 L62 104 L56 88 L48 88 L44 104 L32 104 L38 82 C24 76, 14 70, 10 64 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("car", "#ef4444")}
-        <defs>
-          <linearGradient id="sk-car" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#992b24"/><stop offset="55%" stop-color="#571715"/><stop offset="100%" stop-color="#220909"/>
-          </linearGradient>
-        </defs>
-        <!-- Tail -->
-        <path d="M68 152 C34 152, 16 136, 8 112 C24 124, 44 128, 76 124 Z" fill="#571715" stroke="#1a0606" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Far leg -->
-        <path d="M84 162 L76 214 L96 214 L104 168 Z" fill="#330d0c" stroke="#140404" stroke-width="2.5"/>
-        <!-- Muscular torso with knobby osteoderm rows -->
-        <path d="M66 130 C70 98, 108 90, 144 102 C172 112, 174 148, 156 170 C138 186, 84 182, 66 130 Z" fill="url(#sk-car)" stroke="#140404" stroke-width="3"/>
-        <g fill="#260909" opacity="0.65">
-          <circle cx="94" cy="116" r="4"/><circle cx="110" cy="112" r="4.5"/><circle cx="126" cy="114" r="4"/>
-          <circle cx="90" cy="134" r="3.5"/><circle cx="108" cy="132" r="4"/><circle cx="126" cy="134" r="3.5"/>
-        </g>
-        <!-- Near powerful running leg -->
-        <path d="M124 162 L132 216 L156 216 L142 164 Z" fill="url(#sk-car)" stroke="#140404" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Iconic Bull Horns! -->
-        <path d="M144 56 L124 22 L156 48 Z" fill="#fde68a" stroke="#1a0606" stroke-width="2.6" stroke-linejoin="round"/>
-        <path d="M164 52 L176 18 L180 50 Z" fill="#fef3c7" stroke="#1a0606" stroke-width="2.6" stroke-linejoin="round"/>
-        <!-- Deep bulldog-like muscular predator skull -->
-        <path d="M114 96 C116 62, 142 44, 182 50 C208 54, 218 70, 214 92 C210 104, 194 108, 168 106 L196 116 C188 126, 162 126, 144 116 L132 120 Z" fill="url(#sk-car)" stroke="#140404" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Snarling jaw & teeth -->
-        <path d="M162 96 L210 98 L196 114 L158 108 Z" fill="#450a0a"/>
-        <path d="M168 97 L172 106 L176 97 M180 97 L184 107 L188 97 M192 98 L196 106 L200 98" fill="#fef9c3"/>
-        <!-- Fiery golden-amber slit eye -->
-        <circle cx="164" cy="70" r="6" fill="#fbbf24" stroke="#140404" stroke-width="2"/>
-        <ellipse cx="164.5" cy="70" rx="1.6" ry="4.6" fill="#09090b"/>
-        <path d="M150 60 L176 64" stroke="#140404" stroke-width="3.5" stroke-linecap="round"/>
-      </svg>`
+      cheer: ["황소 뿔 파워로 오늘 숙제 돌파!", "불꽃처럼 멋지게 집중해보자!", "최강의 속도로 오늘 미션 완료!"],
+      sprite: "./assets/sprites/dinos/carnotaurus.png",
+      anchors: {
+        head: { x: 144, y: 44, r: 4, s: 0.84 },
+        face: { x: 150, y: 66, r: 4, s: 0.80 },
+        back: { x: 88, y: 94, r: -12, s: 0.94 },
+        roar: { x: 186, y: 92 }
+      },
+      landmarks: {
+        skullL: [122, 54], skullR: [164, 56],
+        eye1: [142, 72], eye2: [164, 67],
+        shield: [106, 128, -10, 0.54]
+      },
+      rig: {
+        defs: `<linearGradient id="sd-car-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#f87171"/><stop offset="55%" stop-color="#b91c1c"/><stop offset="100%" stop-color="#450a0a"/></linearGradient>`,
+        tailOrigin: "66px 132px",
+        headOrigin: "102px 92px",
+        jawOrigin: "118px 84px",
+        eyeOrigin: "132px 62px",
+        tail: `<path d="M68 126 C40 130, 20 116, 12 96 C26 106, 44 108, 72 106 Z" fill="#b91c1c" stroke="#450a0a" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M72 142 L64 174 L52 176 L76 178 L86 146 Z" fill="#7f1d1d" stroke="#450a0a" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <path d="M62 114 C64 88, 88 80, 116 88 C136 96, 138 126, 126 144 C112 160, 74 158, 62 114 Z" fill="url(#sd-car-b)" stroke="#450a0a" stroke-width="3.6"/>
+          <path d="M92 102 C110 106, 118 126, 110 144 C100 152, 86 148, 84 132 Z" fill="#fde68a" opacity="0.88"/>`,
+        frontLegs: `<path d="M104 142 L110 174 L128 176 L100 178 L92 144 Z" fill="url(#sd-car-b)" stroke="#450a0a" stroke-width="3.4" stroke-linejoin="round"/>`,
+        jaw: `
+          <path d="M114 84 L160 84 C160 94, 146 98, 112 96 Z" fill="#991b1b" stroke="#450a0a" stroke-width="3.3" stroke-linejoin="round"/>
+          <path d="M122 85 L154 86 L148 93 L120 92 Z" fill="#450a0a"/>`,
+        head: `
+          <!-- Iconic bull brow horns -->
+          <path d="M112 46 L96 20 L124 40 Z" fill="#fef08a" stroke="#450a0a" stroke-width="3" stroke-linejoin="round"/>
+          <path d="M132 44 L142 18 L146 44 Z" fill="#fef9c3" stroke="#450a0a" stroke-width="3" stroke-linejoin="round"/>
+          <!-- Deep muscular bulldog-style predator skull -->
+          <path d="M88 70 C88 44, 112 36, 144 42 C164 46, 170 60, 166 76 C162 84, 146 86, 116 86 L96 86 Z" fill="url(#sd-car-b)" stroke="#450a0a" stroke-width="3.6" stroke-linejoin="round"/>
+          <polygon points="130,84 134,93 138,84" fill="#fffbeb"/>
+          <polygon points="142,83 146,93 150,83" fill="#fffbeb"/>
+          <polygon points="154,81 157,89 160,81" fill="#fffbeb"/>`,
+        eyes: `
+          <path d="M120 53 L144 56" stroke="#450a0a" stroke-width="3.6" stroke-linecap="round"/>
+          <circle cx="132" cy="63" r="8" fill="#fef08a" stroke="#450a0a" stroke-width="2.4"/>
+          <ellipse cx="133.5" cy="63" rx="2.6" ry="5.8" fill="#09090b"/>
+          <circle cx="135" cy="60.5" r="2" fill="#ffffff"/>`
+      }
     },
+
+    /* 11. MOSASAURUS (Rare) */
     {
       id: "mosasaurus",
       name: "모사사우루스",
@@ -487,39 +659,48 @@ window.DINO_DATA = (function () {
       specs: "몸길이 약 17m · 거대 해양 파충류",
       soundDesc: "깊은 바닷속을 울리는 거대한 해저 울림과 파도 소리",
       fact: "백악기 바다의 절대 지배자! 이중 턱 구조와 강력한 지느러미로 거대한 상어까지 사냥하던 심해의 괴수예요!",
-      cheer: ["깊은 바다처럼 흔들림 없이 집중!", "거센 파도를 가르고 퀘스트 올클리어!", "바다의 최강자 모사가 응원 중!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M6 50 L24 64 L6 84 L18 68 C34 48, 60 44, 84 52 L114 60 L92 66 L112 72 C98 78, 82 78, 70 76 L56 96 L74 82 C54 80, 38 78, 22 72 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("mos", "#38bdf8", true)}
-        <defs>
-          <linearGradient id="sk-mos" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#3b6e9c"/><stop offset="55%" stop-color="#1b3a5c"/><stop offset="100%" stop-color="#0b1a2e"/>
-          </linearGradient>
-        </defs>
-        <!-- Crescent shark-like tail fluke -->
-        <path d="M52 132 L12 88 L26 132 L10 176 Z" fill="#173352" stroke="#071324" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Rear flipper -->
-        <path d="M90 144 L70 180 L106 158 Z" fill="#173352" stroke="#071324" stroke-width="2.6" stroke-linejoin="round"/>
-        <!-- Sleek colossal marine body + lunging jaws -->
-        <path d="M40 132 C64 88, 114 82, 162 96 L228 112 C226 122, 212 126, 182 126 L222 140 C212 154, 178 158, 146 154 C104 156, 66 150, 40 132 Z" fill="url(#sk-mos)" stroke="#071324" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Pale scarred underbelly -->
-        <path d="M74 140 C106 150, 152 152, 198 144 C178 156, 114 158, 74 140 Z" fill="#cbd5e1" opacity="0.65"/>
-        <!-- Sunbeam caustics across scaled back -->
-        <path d="M84 102 Q112 96 144 102 M96 112 Q126 106 158 114" stroke="#7dd3fc" stroke-width="2.4" fill="none" opacity="0.45" stroke-linecap="round"/>
-        <!-- Dorsal ridge scutes -->
-        <path d="M74 102 L82 90 L92 98 L102 86 L114 94 L126 86 L138 94" fill="#60a5fa" stroke="#071324" stroke-width="2" stroke-linejoin="round" opacity="0.8"/>
-        <!-- Massive open jaws + rows of curved marine fangs -->
-        <path d="M168 120 L222 118 L216 140 L166 136 Z" fill="#4c1d24"/>
-        <path d="M174 121 L178 131 L182 121 M186 121 L190 132 L194 121 M198 121 L202 132 L206 121 M210 120 L214 130 L218 120" fill="#f8fafc"/>
-        <path d="M178 138 L182 130 L186 139 M192 140 L196 131 L200 140 M205 140 L209 132 L213 139" fill="#e2e8f0"/>
-        <!-- Giant steering front paddle -->
-        <path d="M134 142 L106 196 L154 166 Z" fill="url(#sk-mos)" stroke="#071324" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Fierce oceanic eye -->
-        <circle cx="176" cy="110" r="5" fill="#bae6fd" stroke="#071324" stroke-width="1.8"/>
-        <circle cx="177" cy="110" r="2.4" fill="#09090b"/>
-      </svg>`
+      cheer: ["깊은 바다처럼 흔들림 없이 집중!", "거센 파도를 가르고 퀘스트 올클리어!", "심해의 괴수 모사가 응원 중!"],
+      sprite: "./assets/sprites/dinos/mosasaurus.png",
+      anchors: {
+        head: { x: 138, y: 52, r: -6, s: 0.78 },
+        face: { x: 146, y: 68, r: -6, s: 0.74 },
+        back: { x: 96, y: 104, r: -14, s: 0.90 },
+        roar: { x: 188, y: 86 }
+      },
+      landmarks: {
+        skullL: [124, 54], skullR: [162, 52],
+        eye1: [143, 61], eye2: [162, 57],
+        shield: [112, 140, -18, 0.58]
+      },
+      rig: {
+        defs: `<linearGradient id="sd-mos-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#60a5fa"/><stop offset="55%" stop-color="#1d4ed8"/><stop offset="100%" stop-color="#172554"/></linearGradient>`,
+        tailOrigin: "54px 110px",
+        headOrigin: "126px 104px",
+        jawOrigin: "136px 112px",
+        eyeOrigin: "144px 94px",
+        tail: `<path d="M52 110 L14 78 L26 110 L14 142 Z" fill="#1d4ed8" stroke="#0f172a" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M78 122 L62 150 L92 132 Z" fill="#1e40af" stroke="#0f172a" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <path d="M72 90 L80 78 L90 86 L100 76 L112 84 L122 76 L130 86" fill="#93c5fd" stroke="#0f172a" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M40 110 C62 76, 102 74, 140 86 L138 126 C100 130, 62 126, 40 110 Z" fill="url(#sd-mos-b)" stroke="#0f172a" stroke-width="3.6" stroke-linejoin="round"/>
+          <path d="M58 118 C86 126, 114 126, 138 122 C118 134, 78 134, 58 118 Z" fill="#dbeafe" opacity="0.85"/>`,
+        frontLegs: `<path d="M114 120 L92 162 L134 136 Z" fill="#3b82f6" stroke="#0f172a" stroke-width="3.4" stroke-linejoin="round"/>`,
+        jaw: `
+          <path d="M134 112 L184 114 C178 126, 158 128, 132 124 Z" fill="#1e40af" stroke="#0f172a" stroke-width="3.2" stroke-linejoin="round"/>
+          <path d="M142 114 L178 115 L172 122 L140 120 Z" fill="#7f1d1d"/>`,
+        head: `
+          <path d="M126 84 C148 84, 174 92, 188 106 C184 114, 166 116, 134 114 Z" fill="url(#sd-mos-b)" stroke="#0f172a" stroke-width="3.5" stroke-linejoin="round"/>
+          <polygon points="146,113 150,122 154,113" fill="#ffffff"/>
+          <polygon points="158,113 162,122 166,113" fill="#ffffff"/>
+          <polygon points="170,111 174,119 178,111" fill="#ffffff"/>`,
+        eyes: `
+          <circle cx="145" cy="96" r="7" fill="#bae6fd" stroke="#0f172a" stroke-width="2.4"/>
+          <circle cx="146.5" cy="96" r="3.4" fill="#09090b"/>
+          <circle cx="148" cy="94" r="1.5" fill="#ffffff"/>`
+      }
     },
+
+    /* 12. GOLDEN APEX REX (Legendary) */
     {
       id: "goldrex",
       name: "황금 아펙스 렉스",
@@ -533,55 +714,252 @@ window.DINO_DATA = (function () {
       soundDesc: "대지를 뒤흔드는 최강 포효와 황금 공명 에너지음",
       fact: "황금빛 비늘 갑옷과 푸른 에너지 문양을 두른 전설 속의 최강 수호 공룡! 꾸준한 탐험가에게만 모습을 드러내요!",
       cheer: ["전설의 골드렉스 강림! 오늘도 퍼펙트!", "황금빛 집중력 에너지 최대치!", "지섭 탐험가는 이미 전설 등급이야!"],
-      img: null,
-      silhouetteSvg: `<svg viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M10 66 C22 64, 34 60, 42 54 C46 40, 56 34, 68 30 L70 16 L76 22 L82 14 L88 22 C98 22, 108 26, 110 34 C108 40, 96 42, 86 42 L104 48 C98 54, 84 54, 74 52 L72 64 C76 76, 70 84, 64 90 L72 104 L60 105 L54 88 L46 88 L42 104 L30 104 L38 84 C28 78, 18 72, 10 66 Z" fill="currentColor"/></svg>`,
-      svg: `<svg viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-        ${jungleBg("gold", "#fbbf24")}
-        <defs>
-          <linearGradient id="sk-gold" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#fde047"/><stop offset="45%" stop-color="#b45309"/><stop offset="100%" stop-color="#451a03"/>
-          </linearGradient>
-        </defs>
-        <!-- Golden aura embers -->
-        <circle cx="42" cy="54" r="3" fill="#fef08a" opacity="0.85"/>
-        <circle cx="204" cy="40" r="3.5" fill="#38bdf8" opacity="0.85"/>
-        <circle cx="196" cy="184" r="2.5" fill="#fbbf24" opacity="0.75"/>
-        <!-- Tail -->
-        <path d="M14 148 C48 144, 74 130, 92 110 L84 156 C58 162, 32 158, 14 148 Z" fill="#78350f" stroke="#290f02" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Far leg -->
-        <path d="M78 164 L70 214 L92 214 L98 168 Z" fill="#5c280a" stroke="#290f02" stroke-width="2.5"/>
-        <!-- Colossal burnished-gold muscular body -->
-        <path d="M62 132 C68 96, 108 86, 146 98 C174 108, 176 146, 158 170 C138 188, 80 184, 62 132 Z" fill="url(#sk-gold)" stroke="#290f02" stroke-width="3"/>
-        <!-- Glowing sapphire prehistoric energy veins -->
-        <path d="M98 118 L118 134 L108 154 L134 144" stroke="#38bdf8" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
-        <path d="M98 118 L118 134 L108 154 L134 144" stroke="#e0f2fe" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- Near leg -->
-        <path d="M122 162 L130 216 L156 216 L142 164 Z" fill="url(#sk-gold)" stroke="#290f02" stroke-width="2.8" stroke-linejoin="round"/>
-        <!-- Natural golden crown brow horns -->
-        <polygon points="134,54 140,28 152,46 164,24 174,48" fill="#fef08a" stroke="#78350f" stroke-width="2.4" stroke-linejoin="round"/>
-        <!-- Apex Golden T-Rex roaring skull -->
-        <path d="M112 94 C116 56, 146 40, 188 46 C214 50, 226 66, 220 88 C216 98, 200 102, 174 100 L206 114 C196 126, 166 126, 146 114 L132 120 Z" fill="url(#sk-gold)" stroke="#290f02" stroke-width="3" stroke-linejoin="round"/>
-        <!-- Roaring jaw & fangs -->
-        <path d="M164 92 L214 94 L202 112 L160 104 Z" fill="#450a0a"/>
-        <path d="M170 93 L174 104 L178 93 M182 94 L186 106 L190 94 M194 94 L198 105 L202 94 M206 94 L209 102 L212 94" fill="#fef9c3"/>
-        <!-- Glowing sapphire eye -->
-        <circle cx="164" cy="68" r="6.2" fill="#38bdf8" stroke="#0c4a6e" stroke-width="2"/>
-        <ellipse cx="164.5" cy="68" rx="1.6" ry="4.5" fill="#ffffff"/>
-        <path d="M148 56 C172 48, 198 52, 216 64" fill="none" stroke="#fef08a" stroke-width="2.5" opacity="0.8" stroke-linecap="round"/>
-      </svg>`
+      sprite: "./assets/sprites/dinos/goldrex.png",
+      anchors: {
+        head: { x: 134, y: 31, r: -2, s: 0.90 },
+        face: { x: 144, y: 51, r: -2, s: 0.84 },
+        back: { x: 86, y: 94, r: -14, s: 0.96 },
+        roar: { x: 186, y: 78 }
+      },
+      landmarks: {
+        skullL: [118, 40], skullR: [162, 38],
+        eye1: [137, 54], eye2: [160, 48],
+        shield: [116, 126, -10, 0.56]
+      },
+      rig: {
+        defs: `<linearGradient id="sd-gold-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#fef08a"/><stop offset="48%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#92400e"/></linearGradient>`,
+        tailOrigin: "68px 132px",
+        headOrigin: "100px 92px",
+        jawOrigin: "112px 84px",
+        eyeOrigin: "126px 58px",
+        tail: `<path d="M70 124 L14 96 L24 84 L74 106 Z" fill="url(#sd-gold-b)" stroke="#451a03" stroke-width="3.4" stroke-linejoin="round"/>`,
+        backLegs: `<path d="M72 142 L62 172 L52 175 L76 177 L86 146 Z" fill="#b45309" stroke="#451a03" stroke-width="3.2" stroke-linejoin="round"/>`,
+        body: `
+          <path d="M62 112 C64 86, 86 78, 114 86 C134 92, 138 122, 126 144 C114 160, 78 160, 66 142 Z" fill="url(#sd-gold-b)" stroke="#451a03" stroke-width="3.6"/>
+          <polygon points="104,104 116,120 104,136 92,120" fill="#38bdf8" stroke="#0c4a6e" stroke-width="2.6"/>
+          <polygon points="104,110 110,120 104,130 98,120" fill="#e0f2fe"/>`,
+        frontLegs: `
+          <path d="M104 142 L110 172 L128 175 L100 177 L92 144 Z" fill="url(#sd-gold-b)" stroke="#451a03" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M124 108 L142 114 L138 122 L120 118 Z" fill="#fef08a" stroke="#451a03" stroke-width="3" stroke-linejoin="round"/>`,
+        jaw: `
+          <path d="M106 82 L158 84 C162 93, 152 100, 134 99 L102 95 Z" fill="#d97706" stroke="#451a03" stroke-width="3.4" stroke-linejoin="round"/>
+          <path d="M116 83 L154 85 L148 93 L114 91 Z" fill="#7f1d1d"/>`,
+        head: `
+          <polygon points="106,38 112,20 122,34 132,18 140,36" fill="#fef08a" stroke="#78350f" stroke-width="2.6" stroke-linejoin="round"/>
+          <path d="M84 68 C84 42, 108 32, 138 36 C160 39, 174 52, 172 68 C170 80, 156 84, 134 83 L106 85 C92 85, 84 78, 84 68 Z" fill="url(#sd-gold-b)" stroke="#451a03" stroke-width="3.6" stroke-linejoin="round"/>
+          <polygon points="126,82 130,92 134,82" fill="#fffbeb" stroke="#451a03" stroke-width="1.3"/>
+          <polygon points="138,82 142,93 146,82" fill="#fffbeb" stroke="#451a03" stroke-width="1.3"/>
+          <polygon points="150,81 154,91 158,81" fill="#fffbeb" stroke="#451a03" stroke-width="1.3"/>`,
+        eyes: `
+          <path d="M112 49 Q126 42 138 49" stroke="#451a03" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+          <ellipse cx="125" cy="58" rx="9" ry="8.5" fill="#38bdf8" stroke="#0c4a6e" stroke-width="2.6"/>
+          <ellipse cx="127" cy="58" rx="3" ry="6" fill="#ffffff"/>`
+      }
     }
   ];
 
-  // Renders either photorealistic paleoart portrait (when unlocked & img exists),
-  // upgraded realistic SVG portrait, or anatomical silhouette when locked
-  function renderDinoArt(dino, unlocked = true) {
-    if (!unlocked) {
-      return `<div class="dq-dino-sil">${dino.silhouetteSvg || dino.svg}</div>`;
+  /* ---- Exact 2-Point Anatomical Landmark Gear Solver ---- */
+  function solveGearPlacement(dino, item) {
+    const fit = (item && item.fit) || {};
+    const ov = (dino.gearOverrides && item && dino.gearOverrides[item.id]) || {};
+    const lm = dino.landmarks;
+    const rp = item && item.rigPts;
+    const sx = (fit.sx || 1) * (ov.sx || 1);
+    const sy = (fit.sy || 1) * (ov.sy || 1);
+    const front = Boolean((ov.front !== undefined ? ov.front : fit.front));
+
+    if (lm && rp) {
+      if ((rp.kind === "head2" || rp.kind === "face2") && rp.p1 && rp.p2) {
+        const T1 = rp.kind === "head2" ? lm.skullL : lm.eye1;
+        const T2 = rp.kind === "head2" ? lm.skullR : lm.eye2;
+        if (T1 && T2) {
+          const [u1, v1] = rp.p1;
+          const [u2, v2] = rp.p2;
+          const du = u2 - u1, dv = v2 - v1;
+          const dPng = Math.hypot(du, dv) || 1;
+          const angPng = Math.atan2(dv, du);
+
+          const dx = T2[0] - T1[0], dy = T2[1] - T1[1];
+          const dRig = Math.hypot(dx, dy) || 1;
+          const angRig = Math.atan2(dy, dx);
+
+          const scaleMul = (rp.s || 1) * (fit.s || 1) * (ov.s || 1);
+          const w200 = (dRig / dPng) * scaleMul;
+          const rotRad = (angRig - angPng) + (((fit.dr || 0) + (ov.dr || 0)) * Math.PI / 180);
+
+          const mu = (u1 + u2) / 2, mv = (v1 + v2) / 2;
+          const mx = (T1[0] + T2[0]) / 2, my = (T1[1] + T2[1]) / 2;
+          const ox = (0.5 - mu) * w200;
+          const oy = (0.5 - mv) * w200;
+          const cos = Math.cos(rotRad), sin = Math.sin(rotRad);
+          const scRef = dRig / (rp.kind === "head2" ? 56 : 28);
+          const cx = mx + ox * cos - oy * sin + (fit.dx || 0) * scRef + (ov.dx || 0);
+          const cy = my + ox * sin + oy * cos + (fit.dy || 0) * scRef + (ov.dy || 0);
+
+          return {
+            xPct: cx / 2,
+            yPct: cy / 2,
+            wPct: w200 / 2,
+            rotDeg: rotRad * 180 / Math.PI,
+            sx, sy, front
+          };
+        }
+      } else if (rp.kind === "eye1" && rp.p1 && lm.eye1 && lm.eye2) {
+        const [u1, v1] = rp.p1;
+        const dx = lm.eye2[0] - lm.eye1[0], dy = lm.eye2[1] - lm.eye1[1];
+        const dRig = Math.hypot(dx, dy) || 20;
+        const angRig = Math.atan2(dy, dx);
+
+        const scaleMul = (rp.s || 1) * (fit.s || 1) * (ov.s || 1);
+        const w200 = (dRig / (rp.span || 0.36)) * scaleMul;
+        const rotRad = angRig * 0.55 + (((fit.dr || 0) + (ov.dr || 0)) * Math.PI / 180);
+
+        const ox = (0.5 - u1) * w200;
+        const oy = (0.5 - v1) * w200;
+        const cos = Math.cos(rotRad), sin = Math.sin(rotRad);
+        const scRef = dRig / 28;
+        const cx = lm.eye1[0] + ox * cos - oy * sin + (fit.dx || 0) * scRef + (ov.dx || 0);
+        const cy = lm.eye1[1] + ox * sin + oy * cos + (fit.dy || 0) * scRef + (ov.dy || 0);
+
+        return {
+          xPct: cx / 2,
+          yPct: cy / 2,
+          wPct: w200 / 2,
+          rotDeg: rotRad * 180 / Math.PI,
+          sx, sy, front
+        };
+      } else if (rp.kind === "shield" && lm.shield) {
+        const [shx, shy, shr, shs] = lm.shield;
+        return {
+          xPct: (shx + (fit.dx || 0) + (ov.dx || 0)) / 2,
+          yPct: (shy + (fit.dy || 0) + (ov.dy || 0)) / 2,
+          wPct: 38 * (shs || 0.56) * (fit.s || 1) * (ov.s || 1),
+          rotDeg: (shr || 0) + (fit.dr || 0) + (ov.dr || 0),
+          sx, sy, front
+        };
+      }
     }
-    if (dino.img) {
-      return `<img class="dq-dino-img" src="${dino.img}" alt="${dino.name}" decoding="async" />`;
+
+    const pt = dino.anchors[item.slot] || dino.anchors.head;
+    const sizePct = item.slot === "back" ? 38 : item.slot === "face" ? 28 : 35;
+    const sc = pt.s || 1;
+    return {
+      xPct: (pt.x + (fit.dx || 0) * sc + (ov.dx || 0)) / 2,
+      yPct: (pt.y + (fit.dy || 0) * sc + (ov.dy || 0)) / 2,
+      wPct: sizePct * sc * (fit.s || 1) * (ov.s || 1),
+      rotDeg: (pt.r || 0) + (fit.dr || 0) + (ov.dr || 0),
+      sx, sy, front
+    };
+  }
+
+  /* ---- Master Animated SD Rig + Transparent PNG Sprite Renderer ---- */
+  function renderGearPiece(item) {
+    if (!item) return "";
+    if (item.sprite) {
+      return `<img class="sd-gear-img" src="${item.sprite}" alt="${item.name}" decoding="async" />`;
     }
-    return `<div class="dq-dino-svg-wrap">${dino.svg}</div>`;
+    const vb = item.slot === "back" ? "-62 -52 96 104" : "-42 -42 84 74";
+    return `<svg class="sd-gear-svg" viewBox="${vb}" xmlns="http://www.w3.org/2000/svg">${item.svg}</svg>`;
+  }
+
+  function renderDinoArt(dino, opts = {}) {
+    // Backwards-compatible boolean second arg
+    if (typeof opts === "boolean") opts = { unlocked: opts };
+    const unlocked = opts.unlocked !== false;
+    const equipped = unlocked && opts.equipped ? opts.equipped : {};
+    const mood = opts.mood || "idle"; // idle | roar | jump
+    const GEAR = window.DINO_GEAR;
+
+    const r = dino.rig;
+    const a = dino.anchors;
+
+    const auraItem = equipped.aura && GEAR ? GEAR.getItem(equipped.aura) : null;
+    const backItem = equipped.back && GEAR ? GEAR.getItem(equipped.back) : null;
+    const headItem = equipped.head && GEAR ? GEAR.getItem(equipped.head) : null;
+    const faceItem = equipped.face && GEAR ? GEAR.getItem(equipped.face) : null;
+
+    const moodCls = mood === "roar" ? "is-roaring" : mood === "jump" ? "is-jumping" : "";
+
+    // High-Res Transparent PNG Sprite Pipeline (activates automatically when dino.sprite is set!)
+    if (dino.sprite) {
+      const placeStyle = item => {
+        const p = solveGearPlacement(dino, item);
+        const scalePart = p.sx !== 1 || p.sy !== 1 ? ` scale(${p.sx.toFixed(3)},${p.sy.toFixed(3)})` : "";
+        return `left:${p.xPct.toFixed(2)}%;top:${p.yPct.toFixed(2)}%;width:${p.wPct.toFixed(2)}%;transform:translate(-50%,-50%) rotate(${p.rotDeg.toFixed(2)}deg)${scalePart};`;
+      };
+      const backIsFront = Boolean(backItem && solveGearPlacement(dino, backItem).front);
+
+      return `
+        <div class="sd-sprite-stage ${unlocked ? "unlocked" : "locked"} ${moodCls}">
+          ${auraItem ? `<svg class="sd-sprite-aura" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>${GEAR.AURA_DEFS}</defs>${auraItem.svg}</svg>` : ""}
+          <div class="sd-sprite-shadow"></div>
+          <div class="sd-sprite-rig">
+            ${backItem && !backIsFront ? `<div class="sd-sprite-gear gear-back" style="${placeStyle(backItem)}">${renderGearPiece(backItem)}</div>` : ""}
+            <img class="sd-sprite-img" src="${dino.sprite}" alt="${dino.name}" decoding="async" />
+            ${backItem && backIsFront ? `<div class="sd-sprite-gear gear-front-body" style="${placeStyle(backItem)}">${renderGearPiece(backItem)}</div>` : ""}
+            ${faceItem ? `<div class="sd-sprite-gear gear-face" style="${placeStyle(faceItem)}">${renderGearPiece(faceItem)}</div>` : ""}
+            ${headItem ? `<div class="sd-sprite-gear gear-head" style="${placeStyle(headItem)}">${renderGearPiece(headItem)}</div>` : ""}
+          </div>
+          ${unlocked ? `
+            <svg class="sd-sprite-roar-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+              <g class="sd-roar-waves" transform="translate(${a.roar.x},${a.roar.y})">
+                <path d="M2 -14 Q14 0 2 14" fill="none" stroke="#fef08a" stroke-width="4" stroke-linecap="round"/>
+                <path d="M12 -22 Q28 0 12 22" fill="none" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M24 -30 Q44 0 24 30" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+              </g>
+            </svg>` : ""}
+        </div>`;
+    }
+
+    const backGearSvg = backItem
+      ? `<g class="sd-gear-back" transform="translate(${a.back.x},${a.back.y}) rotate(${a.back.r}) scale(${a.back.s})">${backItem.svg}</g>`
+      : "";
+    const headGearSvg = headItem
+      ? `<g class="sd-gear-head" transform="translate(${a.head.x},${a.head.y}) rotate(${a.head.r}) scale(${a.head.s})">${headItem.svg}</g>`
+      : "";
+    const faceGearSvg = faceItem
+      ? `<g class="sd-gear-face" transform="translate(${a.face.x},${a.face.y}) rotate(${a.face.r}) scale(${a.face.s})">${faceItem.svg}</g>`
+      : "";
+
+    const roarWaves = `
+      <g class="sd-roar-waves" transform="translate(${a.roar.x},${a.roar.y})">
+        <path class="rw1" d="M2 -14 Q14 0 2 14" fill="none" stroke="#fef08a" stroke-width="4" stroke-linecap="round"/>
+        <path class="rw2" d="M12 -22 Q28 0 12 22" fill="none" stroke="#fbbf24" stroke-width="3.5" stroke-linecap="round"/>
+        <path class="rw3" d="M24 -30 Q44 0 24 30" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round"/>
+      </g>`;
+
+    const stageCls = [
+      "sd-dino-svg",
+      unlocked ? "unlocked" : "locked",
+      moodCls
+    ].filter(Boolean).join(" ");
+
+    return `
+      <svg class="${stageCls}" viewBox="0 -14 200 214" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          ${GEAR ? GEAR.AURA_DEFS : ""}
+          ${r.defs || ""}
+        </defs>
+        ${auraItem ? auraItem.svg : ""}
+        <ellipse class="sd-shadow" cx="100" cy="180" rx="56" ry="10" fill="rgba(0,0,0,0.34)"/>
+        <g class="sd-rig">
+          <g class="sd-tail" style="transform-origin:${r.tailOrigin}">${r.tail}</g>
+          <g class="sd-back-legs">${r.backLegs}</g>
+          <g class="sd-body-wrap">
+            ${backGearSvg}
+            <g class="sd-body">${r.body}</g>
+            <g class="sd-head" style="transform-origin:${r.headOrigin}">
+              <g class="sd-jaw" style="transform-origin:${r.jawOrigin}">${r.jaw}</g>
+              <g class="sd-head-main">${r.head}</g>
+              <g class="sd-eyes" style="transform-origin:${r.eyeOrigin}">${r.eyes}</g>
+              ${faceGearSvg}
+              ${headGearSvg}
+            </g>
+          </g>
+          <g class="sd-front-legs">${r.frontLegs}</g>
+        </g>
+        ${unlocked ? roarWaves : ""}
+      </svg>`;
   }
 
   // 커스텀 SVG 공룡 코인
@@ -680,7 +1058,7 @@ window.DINO_DATA = (function () {
     { id: "dino", label: "특별미션", icon: "🦖", color: "#2dd4bf" }
   ];
 
-  // Healthy & screen-free shop icons (no gaming/YouTube icons)
+  // Wholesome screen-free gift icons
   const SHOP_ICONS = ["🦖", "🦕", "🎁", "🍦", "🧩", "📚", "⚽", "🍕", "🎬", "🎨", "🛹", "🏕️", "⭐", "💎", "🎟️", "🚀"];
 
   function getDino(id) {
@@ -691,5 +1069,5 @@ window.DINO_DATA = (function () {
     return CATEGORIES.find(c => c.id === id) || CATEGORIES[7];
   }
 
-  return { DINOS, CATEGORIES, SHOP_ICONS, renderDinoArt, coinSVG, eggSVG, pawSVG, chestSVG, getDino, getCategory };
+  return { DINOS, CATEGORIES, SHOP_ICONS, renderDinoArt, solveGearPlacement, coinSVG, eggSVG, pawSVG, chestSVG, getDino, getCategory };
 })();
