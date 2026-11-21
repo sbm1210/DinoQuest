@@ -8,7 +8,7 @@
   "use strict";
 
   const STORAGE_KEY = "dino_quest_v1";
-  const DEV_UNLOCK_ALL = true; // 개발 테스트 모드: 모든 공룡(12종) + 모든 장비(18종) 즉시 선택 가능
+  const DEV_UNLOCK_ALL = false; // 실사용 모드 (true로 바꾸면 개발 테스트용 전체 해금)
   window.DQ_DEV_UNLOCK_ALL = DEV_UNLOCK_ALL;
   const WEEKDAYS_KO = ["일", "월", "화", "수", "목", "금", "토"];
   const WEEKDAYS_ORDER = [1, 2, 3, 4, 5, 6, 0]; // 월~일 표시용
@@ -113,7 +113,7 @@
   /* ---- Default Starter State (Tailored for 소지섭, rising 3rd grader) ---- */
   function createDefaultState() {
     return {
-      version: 2,
+      version: 3,
       createdDate: todayStr(),
       settings: {
         childName: "소지섭",
@@ -176,6 +176,10 @@
   }
 
   function normalizeState(p, def = createDefaultState()) {
+    // Migration < v3: reset pre-launch dev/test state cleanly to production Day 1 defaults
+    if (!p || (p.version || 1) < 3) {
+      return def;
+    }
     const s = {
       ...def,
       ...p,
@@ -189,11 +193,6 @@
     if (!Array.isArray(s.templates)) s.templates = def.templates;
     if (!Array.isArray(s.bossTemplates)) s.bossTemplates = def.bossTemplates;
     if (!Array.isArray(s.shopItems)) s.shopItems = def.shopItems;
-    // Migration v1 -> v2: remove default game/YouTube shop reward automatically
-    if ((p.version || 1) < 2) {
-      s.shopItems = s.shopItems.filter(it => it.id !== "shop_game" && !/유튜브|게임/.test(it.name || ""));
-      s.version = 2;
-    }
     if (!Array.isArray(s.claimedAchievements)) s.claimedAchievements = [];
     if (!Array.isArray(s.redeemHistory)) s.redeemHistory = [];
     if (!Array.isArray(s.coinHistory)) s.coinHistory = [];
@@ -1470,20 +1469,22 @@
             }).join("")}
           </div>
 
-          <div class="dq-wardrobe-dino-picker">
-            <div class="dq-wardrobe-picker-head">
-              <span>🦕 공룡 바꿔 입혀보기 (${getUnlockedDinoCount()}/${DINOS.length})</span>
-              ${DEV_UNLOCK_ALL ? `<span class="dq-dev-pill">🔧 개발 전체해금</span>` : ""}
+          ${getUnlockedDinoCount() > 1 ? `
+            <div class="dq-wardrobe-dino-picker">
+              <div class="dq-wardrobe-picker-head">
+                <span>🦕 공룡 바꿔 입혀보기 (${getUnlockedDinoCount()}/${DINOS.length})</span>
+                ${DEV_UNLOCK_ALL ? `<span class="dq-dev-pill">🔧 개발 전체해금</span>` : ""}
+              </div>
+              <div class="dq-wardrobe-dino-pills">
+                ${DINOS.filter(d => isDinoUnlocked(d.id)).map(d => `
+                  <button class="dq-mini-dino-btn ${d.id === partner.id ? "on" : ""}" data-act="quick-switch-dino" data-did="${d.id}" title="${esc(d.name)}">
+                    <img src="${d.sprite}" alt="${esc(d.nick)}" />
+                    <span>${esc(d.nick)}</span>
+                  </button>
+                `).join("")}
+              </div>
             </div>
-            <div class="dq-wardrobe-dino-pills">
-              ${DINOS.filter(d => isDinoUnlocked(d.id)).map(d => `
-                <button class="dq-mini-dino-btn ${d.id === partner.id ? "on" : ""}" data-act="quick-switch-dino" data-did="${d.id}" title="${esc(d.name)}">
-                  <img src="${d.sprite}" alt="${esc(d.nick)}" />
-                  <span>${esc(d.nick)}</span>
-                </button>
-              `).join("")}
-            </div>
-          </div>
+          ` : ""}
         </section>
 
         <section class="dq-card">
