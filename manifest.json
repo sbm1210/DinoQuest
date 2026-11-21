@@ -1,0 +1,23 @@
+{
+  "name": "DinoQuest · 소지섭의 공룡 탐험대",
+  "short_name": "DinoQuest",
+  "description": "아이패드용 공룡 일일 퀘스트 숙제 관리 웹앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#091412",
+  "theme_color": "#091412",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
