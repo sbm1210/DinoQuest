@@ -176,10 +176,7 @@
   }
 
   function normalizeState(p, def = createDefaultState()) {
-    // Migration < v3: reset pre-launch dev/test state cleanly to production Day 1 defaults
-    if (!p || (p.version || 1) < 3) {
-      return def;
-    }
+    if (!p || typeof p !== "object") return def;
     const s = {
       ...def,
       ...p,
@@ -193,6 +190,11 @@
     if (!Array.isArray(s.templates)) s.templates = def.templates;
     if (!Array.isArray(s.bossTemplates)) s.bossTemplates = def.bossTemplates;
     if (!Array.isArray(s.shopItems)) s.shopItems = def.shopItems;
+    // Migration v1 -> v2: remove default game/YouTube shop reward automatically
+    if ((p.version || 1) < 2) {
+      s.shopItems = s.shopItems.filter(it => it.id !== "shop_game" && !/유튜브|게임/.test(it.name || ""));
+    }
+    s.version = 3;
     if (!Array.isArray(s.claimedAchievements)) s.claimedAchievements = [];
     if (!Array.isArray(s.redeemHistory)) s.redeemHistory = [];
     if (!Array.isArray(s.coinHistory)) s.coinHistory = [];
@@ -211,6 +213,19 @@
     if (!s.dayOverrides || typeof s.dayOverrides !== "object") s.dayOverrides = {};
     if (!s.dayLogs || typeof s.dayLogs !== "object") s.dayLogs = {};
     if (!s.bossLogs || typeof s.bossLogs !== "object") s.bossLogs = {};
+    return s;
+  }
+
+  function sanitizeGearLocks(s) {
+    if (!GEAR || DEV_UNLOCK_ALL) return s;
+    const streak = computeStreak(s);
+    const unlockedSet = new Set(GEAR.getUnlockedGearIds(s, streak));
+    for (const sl of ["head", "face", "back", "aura"]) {
+      if (s.equippedGear[sl] && !unlockedSet.has(s.equippedGear[sl])) {
+        s.equippedGear[sl] = null;
+      }
+    }
+    s.seenGear = (s.seenGear || []).filter(id => unlockedSet.has(id));
     return s;
   }
 
@@ -2394,6 +2409,8 @@
           <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="io-export">📋 백업 코드 내보내기</button>
           <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="io-import-open">📥 백업 코드 가져오기</button>
           <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="io-download-json">⬇️ JSON 파일 저장</button>
+          <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="io-upload-json">📂 JSON 파일 불러오기</button>
+          <input id="dq-import-file" type="file" accept=".json,application/json" style="display:none" />
         </div>
         ${ui.adminIoMode === "export" ? `
           <div style="margin-top:10px">
@@ -3151,18 +3168,12 @@
       case "io-import-apply": {
         const raw = (document.getElementById("dq-import-ta")?.value || "").trim();
         if (!raw) return;
-        try {
-          const parsed = raw.startsWith("{") ? JSON.parse(raw) : decodeBackup(raw);
-          state = normalizeState(parsed);
-          setMuted(state.settings.muted);
-          saveState();
-          ui.adminIoMode = "none";
-          sfx.approve();
-          showToast("✅ 백업 복원 완료!");
-          render();
-        } catch (e) {
-          showToast("⚠️ 올바르지 않은 백업 코드예요");
-        }
+        applyImportedBackup(raw);
+        break;
+      }
+      case "io-upload-json": {
+        const inp = document.getElementById("dq-import-file");
+        if (inp) { inp.value = ""; inp.click(); }
         break;
       }
       case "io-download-json": {
@@ -3194,6 +3205,33 @@
     }
   });
 
+  function applyImportedBackup(raw) {
+    try {
+      const text = String(raw || "").trim();
+      const parsed = text.startsWith("{") ? JSON.parse(text) : decodeBackup(text);
+      state = sanitizeGearLocks(normalizeState(parsed));
+      setMuted(state.settings.muted);
+      saveState();
+      ui.adminIoMode = "none";
+      sfx.approve();
+      showToast(`✅ 백업 복원 완료! (주간 숙제 ${state.templates.length}개)`);
+      render();
+    } catch (e) {
+      showToast("⚠️ 올바르지 않은 백업 파일/코드예요");
+    }
+  }
+
+  document.addEventListener("change", ev => {
+    const inp = ev.target;
+    if (!inp || inp.id !== "dq-import-file" || !inp.files || !inp.files[0]) return;
+    const reader = new FileReader();
+    reader.onload = () => applyImportedBackup(reader.result);
+    reader.onerror = () => showToast("⚠️ 파일을 읽지 못했어요");
+    reader.readAsText(inp.files[0], "utf-8");
+  });
+
   /* ---- Initial Render ---- */
+  sanitizeGearLocks(state);
+  saveState();
   render();
 })();
