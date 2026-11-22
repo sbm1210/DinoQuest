@@ -436,6 +436,25 @@ window.DINO_FX = (function () {
         note(f, s, d, "triangle", 0.17);
         note(f * 0.5, s, d, "sine", 0.08);
       });
+    },
+    parkMove(motion = "roam") {
+      if (motion === "soar") {
+        const c = ensureCtx();
+        if (c) {
+          const out = createMasterOut(c, 0.52);
+          breathLayer(c, out, { dur: 0.22, delay: 0, filterType: "bandpass", cut0: 900, cutEnd: 2200, Q: 2.0, gain: 0.18, attack: 0.03 });
+        }
+        note(540, 0.02, 0.14, "sine", 0.08, 760);
+      } else if (motion === "swim") {
+        note(340, 0, 0.09, "sine", 0.09, 520);
+        note(460, 0.09, 0.11, "sine", 0.09, 680);
+      } else if (motion === "hop") {
+        note(420, 0, 0.08, "triangle", 0.1, 640);
+        note(520, 0.11, 0.09, "triangle", 0.1, 740);
+      } else {
+        note(220, 0, 0.07, "triangle", 0.1, 155);
+        note(260, 0.13, 0.08, "triangle", 0.09, 175);
+      }
     }
   };
 

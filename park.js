@@ -203,6 +203,101 @@ window.DINO_PARK = (function () {
     }))
   );
 
+  /* ---- Park Terrain Zones (percent coords calibrated to park_diorama.jpg) ----
+     sky   : above the horizon / treetops (y < groundTop(x))
+     water : the lagoon at bottom-right (y > waterTop(x))
+     land  : everything else (grass, paths, beach, rocky plateau) */
+  const GROUND_TOP_PTS = [
+    [0, 45], [12, 45], [22, 44], [30, 42], [38, 44], [50, 42],
+    [60, 40], [64, 34], [72, 28], [85, 22], [100, 20]
+  ];
+  const WATER_TOP_PTS = [
+    [59, 100], [60, 84], [63, 75], [69, 70.5], [76, 67],
+    [80, 67.5], [85, 70], [90, 73], [100, 74]
+  ];
+
+  function interpY(pts, x) {
+    if (x <= pts[0][0]) return pts[0][1];
+    for (let i = 1; i < pts.length; i++) {
+      const [x1, y1] = pts[i];
+      const [x0, y0] = pts[i - 1];
+      if (x <= x1) {
+        const t = x1 === x0 ? 0 : (x - x0) / (x1 - x0);
+        return y0 + (y1 - y0) * t;
+      }
+    }
+    return pts[pts.length - 1][1];
+  }
+
+  function getTerrainAt(x, y) {
+    if (x >= WATER_TOP_PTS[0][0] && y > interpY(WATER_TOP_PTS, x)) return "water";
+    if (y < interpY(GROUND_TOP_PTS, x)) return "sky";
+    return "land";
+  }
+
+  // Which terrains each dinosaur can move into
+  const DINO_HABITATS = {
+    trex: ["land"],
+    triceratops: ["land"],
+    brachiosaurus: ["land"],
+    stegosaurus: ["land"],
+    velociraptor: ["land"],
+    ankylosaurus: ["land"],
+    parasaurolophus: ["land"],
+    carnotaurus: ["land"],
+    goldrex: ["land"],
+    spinosaurus: ["land", "water"],
+    mosasaurus: ["water"],
+    pteranodon: ["sky", "land"]
+  };
+
+  function getHabitat(dinoId) {
+    return DINO_HABITATS[dinoId] || ["land"];
+  }
+
+  function canDinoGoTo(dinoId, x, y) {
+    return getHabitat(dinoId).includes(getTerrainAt(x, y));
+  }
+
+  const TERRAIN_LABELS = {
+    land: { icon: "🌿", label: "땅" },
+    water: { icon: "🌊", label: "물" },
+    sky: { icon: "☁️", label: "하늘" }
+  };
+
+  // Friendly refusal lines when the child taps a terrain the dino can't enter
+  function getRefusalLine(dinoId, terrain) {
+    const hab = getHabitat(dinoId);
+    if (dinoId === "mosasaurus") {
+      return terrain === "sky"
+        ? "나는 물속에서만 살 수 있어! 하늘은 무리야~ 🌊"
+        : "나는 바다 생물이라 땅 위로는 못 올라가! 물로만 갈래 🌊";
+    }
+    if (dinoId === "spinosaurus") {
+      return "나는 헤엄은 잘 쳐도 하늘은 못 날아! 땅이나 물로 가자 🌊";
+    }
+    if (dinoId === "pteranodon") {
+      return "물에 빠지면 날개가 젖어서 못 날아! 하늘이나 땅으로 갈래 🪶";
+    }
+    if (hab.length === 1 && hab[0] === "land") {
+      return terrain === "water"
+        ? "앗! 나는 수영을 못해서 물에는 못 들어가 💦"
+        : "나는 날개가 없어서 하늘은 못 날아! 땅으로만 갈래 🦶";
+    }
+    return "거기는 갈 수 없어! 다른 곳을 눌러줘 🐾";
+  }
+
+  function ptsToPath(pts) {
+    return pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
+  }
+
+  // SVG paths (viewBox 0 0 100 100) for the zone overlay shown while a dino is selected
+  const ZONE_PATHS = {
+    sky: `M0,0 L100,0 ${ptsToPath(GROUND_TOP_PTS.slice().reverse()).replace(/^M/, "L")} Z`,
+    water: `${ptsToPath(WATER_TOP_PTS)} L100,100 Z`,
+    land: `${ptsToPath(GROUND_TOP_PTS)} L100,100 L0,100 Z ${ptsToPath(WATER_TOP_PTS)} L100,100 Z`
+  };
+
   const FOSSIL_MAP = new Map(FOSSILS.map(f => [f.id, f]));
 
   function getFossil(id) {
@@ -240,5 +335,9 @@ window.DINO_PARK = (function () {
     `;
   }
 
-  return { PARK_SPOTS, FOSSILS, ALL_PART_KEYS, getFossil, renderFossilSkeletonSVG };
+  return {
+    PARK_SPOTS, FOSSILS, ALL_PART_KEYS, getFossil, renderFossilSkeletonSVG,
+    DINO_HABITATS, TERRAIN_LABELS, ZONE_PATHS,
+    getTerrainAt, getHabitat, canDinoGoTo, getRefusalLine
+  };
 })();

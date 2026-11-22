@@ -262,6 +262,79 @@
     return { lv: 1, title: "꼬마 탐험가" };
   }
 
+  /* ---- Developer Mailbox Categories, Statuses & Sample ---- */
+  const DEV_MSG_CATEGORIES = [
+    { id: "park",   label: "공룡 공원",   icon: "🏞️", color: "#34d399" },
+    { id: "dinos",  label: "공룡 · 장비", icon: "🦕", color: "#38bdf8" },
+    { id: "quests", label: "퀘스트",      icon: "🗺️", color: "#fbbf24" },
+    { id: "shop",   label: "선물 상점",   icon: "🎁", color: "#f472b6" },
+    { id: "idea",   label: "새 아이디어", icon: "✨", color: "#a78bfa" },
+    { id: "bug",    label: "이상해요",    icon: "🐛", color: "#fb923c" }
+  ];
+
+  const DEV_MSG_STATUSES = [
+    { id: "new",     label: "전달 완료",   icon: "📮", cls: "st-new" },
+    { id: "working", label: "만드는 중!",  icon: "🛠️", cls: "st-working" },
+    { id: "done",    label: "완성됐어요!", icon: "✅", cls: "st-done" },
+    { id: "later",   label: "고민 중",     icon: "💭", cls: "st-later" }
+  ];
+
+  const VALID_DEV_CAT_IDS = new Set(DEV_MSG_CATEGORIES.map(c => c.id));
+  const VALID_DEV_STATUS_IDS = new Set(DEV_MSG_STATUSES.map(st => st.id));
+
+  function getDevMsgCategory(catId) {
+    return DEV_MSG_CATEGORIES.find(c => c.id === catId) || DEV_MSG_CATEGORIES[4];
+  }
+
+  function getDevMsgStatus(statusId) {
+    return DEV_MSG_STATUSES.find(st => st.id === statusId) || DEV_MSG_STATUSES[0];
+  }
+
+  function createSampleDevMessage(dateStr = todayStr()) {
+    return {
+      id: "devmsg_sample_park_move",
+      category: "park",
+      text: "공룡 공원에서 공룡 터치하고 위치 눌러서 움직일수 있으면 좋겠어요",
+      status: "done",
+      reply: "멋진 아이디어 고마워! 이제 공룡 공원에서 공룡을 톡 누른 다음 원하는 곳을 누르면 직접 걸어가도록 만들어 줬어 🦖✨",
+      createdAt: dateStr,
+      updatedAt: dateStr,
+      childUnread: true,
+      parentUnread: false
+    };
+  }
+
+  function getChildUnreadMailboxCount(s = state) {
+    return (Array.isArray(s.devMessages) ? s.devMessages : []).filter(m => m && m.childUnread).length;
+  }
+
+  function getOpenMailboxCount(s = state) {
+    return (Array.isArray(s.devMessages) ? s.devMessages : []).filter(m => m && (m.status === "new" || m.status === "working")).length;
+  }
+
+  function getParentUnreadMailboxCount(s = state) {
+    return (Array.isArray(s.devMessages) ? s.devMessages : []).filter(m => m && m.parentUnread).length;
+  }
+
+  function buildMailboxMarkdown(onlyOpen = true) {
+    const msgs = Array.isArray(state.devMessages) ? state.devMessages : [];
+    const list = onlyOpen ? msgs.filter(m => m.status !== "done") : msgs;
+    const header = `# 🦖 DinoQuest ${state.settings.childName}의 개발자 아이디어 목록 (${todayStr()})`;
+    if (list.length === 0) return `${header}\n\n(항목 없음)`;
+    const lines = list.map(m => {
+      const cat = getDevMsgCategory(m.category);
+      const st = getDevMsgStatus(m.status);
+      const chk = m.status === "done" ? "x" : " ";
+      const textOneLine = String(m.text || "").trim().replace(/\s*\n\s*/g, " / ");
+      let line = `- [${chk}] [${cat.icon} ${cat.label}] (${st.label} · ${m.createdAt || ""}) ${textOneLine}`;
+      if (m.reply && m.reply.trim()) {
+        line += `\n  - 💬 개발자 답장: ${m.reply.trim().replace(/\s*\n\s*/g, " / ")}`;
+      }
+      return line;
+    });
+    return `${header}\n\n${lines.join("\n")}`;
+  }
+
   /* ---- Default Starter State (Tailored for 소지섭, rising 3rd grader) ---- */
   function createDefaultState() {
     return {
@@ -278,6 +351,7 @@
         reviewAuthMode: "math",            // math | hold | pin
         enableBossRaid: false,             // 기본: 준비중 (부모 모드 설정에서 ON/OFF)
         enableFossil: false,               // 기본: 준비중 (부모 모드 설정에서 ON/OFF)
+        gearOwnedOnly: false,              // 장비 옷장: 보유한 장비만 보기 필터
         parentNote: "지섭아! 숙제 다 끝내고 엄마·아빠 불러줘 🦖",
         muted: true
       },
@@ -324,7 +398,10 @@
       ],
       claimedAchievements: [],
       redeemHistory: [],
-      coinHistory: []
+      coinHistory: [],
+      parkPositions: {},
+      devMailboxSeeded: true,
+      devMessages: [createSampleDevMessage()]
     };
   }
 
@@ -359,6 +436,7 @@
     }
     s.settings.enableBossRaid = Boolean(s.settings.enableBossRaid);
     s.settings.enableFossil = Boolean(s.settings.enableFossil);
+    s.settings.gearOwnedOnly = Boolean(s.settings.gearOwnedOnly);
     if (!validDinoIds.has(s.partnerDino) || (!DEV_UNLOCK_ALL && !s.unlockedDinos.includes(s.partnerDino))) {
       s.partnerDino = s.unlockedDinos[0];
     }
@@ -418,6 +496,48 @@
     }
     if (!Array.isArray(s.completedFossilRewards)) s.completedFossilRewards = [];
     if (typeof s.totalDigs !== "number" || !Number.isFinite(s.totalDigs)) s.totalDigs = 0;
+
+    // Normalize custom Jurassic Park dinosaur positions
+    const cleanParkPos = {};
+    if (p.parkPositions && typeof p.parkPositions === "object") {
+      for (const [did, pos] of Object.entries(p.parkPositions)) {
+        if (!validDinoIds.has(did) || !pos || typeof pos !== "object") continue;
+        const x = Number(pos.x);
+        const y = Number(pos.y);
+        if (!Number.isFinite(x) || !Number.isFinite(y)) continue;
+        cleanParkPos[did] = {
+          x: Math.round(Math.max(6, Math.min(94, x)) * 10) / 10,
+          y: Math.round(Math.max(16, Math.min(95, y)) * 10) / 10,
+          flip: Boolean(pos.flip)
+        };
+      }
+    }
+    s.parkPositions = cleanParkPos;
+
+    // Normalize Developer Mailbox messages (seed implemented sample once for existing users too)
+    const rawMsgs = Array.isArray(p.devMessages) ? p.devMessages : [];
+    s.devMessages = rawMsgs
+      .filter(m => m && typeof m === "object" && String(m.text || "").trim())
+      .map(m => ({
+        id: String(m.id || uid("devmsg")),
+        category: VALID_DEV_CAT_IDS.has(m.category) ? m.category : "idea",
+        text: String(m.text || "").trim(),
+        status: VALID_DEV_STATUS_IDS.has(m.status) ? m.status : "new",
+        reply: String(m.reply || "").trim(),
+        createdAt: typeof m.createdAt === "string" && m.createdAt ? m.createdAt : todayStr(),
+        updatedAt: typeof m.updatedAt === "string" && m.updatedAt ? m.updatedAt : (m.createdAt || todayStr()),
+        childUnread: Boolean(m.childUnread),
+        parentUnread: Boolean(m.parentUnread)
+      }));
+    if (!p.devMailboxSeeded) {
+      if (!s.devMessages.some(m => m.id === "devmsg_sample_park_move")) {
+        s.devMessages.push(createSampleDevMessage(todayStr()));
+      }
+      s.devMailboxSeeded = true;
+    } else {
+      s.devMailboxSeeded = true;
+    }
+
     return s;
   }
 
@@ -460,9 +580,19 @@
     parkView: "diorama",     // diorama | museum
     parkTime: "day",         // day | sunset | night
     parkVariantMode: "auto", // auto | base | variant
+    parkSelectedDinoId: null,// Selected dinosaur ready to move on tap
+    parkMoveTimers: {},      // Per-dino arrival animation timers
     parkBubble: null,        // { dinoId, text }
     parkBubbleTimer: null,
+    parkBubbleRemoveTimer: null,
+    dinoLineBag: {},         // Non-repeating shuffled dialogue deck per dino
+    dinoLastLine: {},        // Last spoken line per dino (prevents back-to-back repeats)
     digModal: null,          // Fossil excavation minigame session state
+    mailboxOpen: false,      // Child Developer Mailbox modal
+    mailboxDraftCat: "park", // Selected category tag in composer
+    mailboxDraftText: "",    // Draft message text (preserved across renders)
+    mailboxFilter: "all",    // all | active | done
+    mailboxJustSeenIds: [],  // Newly updated message IDs highlighted during current open
     gearSlot: "all",         // all | head | face | back | aura | stage
     collectionFilter: "all", // all | base | variant
     showCompletedAch: false,
@@ -481,7 +611,10 @@
 
     quickReviewOpen: false,
     adminOpen: false,
-    adminTab: "review",   // review | schedule | shop | settings
+    adminTab: "review",   // review | schedule | shop | mailbox | settings
+    adminMailFilter: "all", // all | new | working | done | later
+    adminMailCopyMode: "none", // none | preview
+    adminMailCopyText: "",
     adminScheduleMode: "templates", // templates | override | boss
     adminOverrideDate: todayStr(),
     adminEditingTplId: null,
@@ -1812,6 +1945,7 @@
     const newGearCount = getNewGearIds().length;
     const dinoNotify = state.pendingEggs + achClaimable + newGearCount;
     const parkNotify = isFossilEnabled() ? ((Number(state.digTickets) || 0) + getClaimableFossilCount()) : 0;
+    const mailboxUnread = getChildUnreadMailboxCount();
     const rank = getRankInfo(state.totalQuestsClaimed);
 
     return `
@@ -1853,6 +1987,10 @@
           <button id="dq-wallet-pill" class="dq-stat-pill coin" data-act="nav" data-val="shop" title="${esc(state.settings.currencyName)}">
             ${coinSVG(22)}
             <span>${state.coins.toLocaleString()}</span>
+          </button>
+          <button class="dq-icon-btn mailbox-btn ${mailboxUnread > 0 ? "has-reply" : ""}" data-act="open-mailbox" aria-label="개발자 우체통" title="개발자 우체통 (아이디어 남기기)">
+            <span class="dq-mailbox-ico" aria-hidden="true">📮</span>
+            ${mailboxUnread > 0 ? `<span class="dq-dot-badge">${mailboxUnread}</span>` : ""}
           </button>
           <button class="dq-icon-btn ${state.settings.muted ? "muted" : ""}" data-act="toggle-mute" aria-label="효과음 켜기/끄기" title="효과음">
             ${state.settings.muted
@@ -2490,7 +2628,10 @@
     const affPct = Math.min(100, Math.round((aff / VARIANT_AFFINITY_NEED) * 100));
     const streak = computeStreak(state);
     const unlockedIds = new Set(GEAR.getUnlockedGearIds(state, streak));
-    const filtered = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
+    const ownedOnly = Boolean(state.settings.gearOwnedOnly);
+    const slotItems = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
+    const slotOwnedCount = slotItems.filter(it => unlockedIds.has(it.id)).length;
+    const filtered = ownedOnly ? slotItems.filter(it => unlockedIds.has(it.id)) : slotItems;
     const equippedCount = Object.values(state.equippedGear || {}).filter(Boolean).length;
 
     return `
@@ -2573,45 +2714,64 @@
           <div class="dq-card-title" style="flex-wrap:wrap">
             <h2>👔 장비 옷장 (${unlockedIds.size} / ${GEAR.ITEMS.length} 해금)</h2>
             <div class="dq-day-pills">
-              <button class="dq-day-pill ${ui.gearSlot === "all" ? "on" : ""}" data-act="gear-slot" data-val="all">전체</button>
-              ${GEAR.SLOTS.map(sl => `
-                <button class="dq-day-pill ${ui.gearSlot === sl.id ? "on" : ""}" data-act="gear-slot" data-val="${sl.id}">
-                  ${sl.icon} ${sl.label}
-                </button>
-              `).join("")}
+              <button class="dq-day-pill ${ui.gearSlot === "all" ? "on" : ""}" data-act="gear-slot" data-val="all">
+                전체${ownedOnly ? ` <span class="dq-slot-cnt">${unlockedIds.size}</span>` : ""}
+              </button>
+              ${GEAR.SLOTS.map(sl => {
+                const slOwned = GEAR.ITEMS.filter(it => it.slot === sl.id && unlockedIds.has(it.id)).length;
+                return `
+                  <button class="dq-day-pill ${ui.gearSlot === sl.id ? "on" : ""} ${ownedOnly && slOwned === 0 ? "is-empty-slot" : ""}" data-act="gear-slot" data-val="${sl.id}">
+                    ${sl.icon} ${sl.label}${ownedOnly ? ` <span class="dq-slot-cnt">${slOwned}</span>` : ""}
+                  </button>
+                `;
+              }).join("")}
             </div>
           </div>
-          <div style="font-size:12px;color:var(--mut);margin-bottom:12px;font-weight:700">
-            숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 🪙)
+          <div class="dq-gear-toolbar">
+            <div class="dq-gear-subnote">
+              숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 🪙)
+            </div>
+            <button type="button" role="checkbox" aria-checked="${ownedOnly ? "true" : "false"}"
+              class="dq-owned-chk ${ownedOnly ? "on" : ""}" data-act="toggle-gear-owned">
+              <span class="dq-chk-box" aria-hidden="true">${ownedOnly ? "✓" : ""}</span>
+              <span>보유한 장비만 보기</span>
+              <small>(${slotOwnedCount})</small>
+            </button>
           </div>
 
-          <div class="dq-gear-grid">
-            ${filtered.map(it => {
-              const unlocked = unlockedIds.has(it.id);
-              const equipped = state.equippedGear?.[it.slot] === it.id;
-              const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
-              const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
-              return `
-                <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""}"
-                  ${unlocked ? `data-act="toggle-gear" data-gid="${it.id}"` : ""}>
-                  ${equipped ? `<span class="dq-partner-crown" style="background:var(--gold);color:#3b1900">✓ 착용중</span>` : ""}
-                  <div class="dq-gear-preview-box">${renderGearThumb(it)}</div>
-                  <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
-                  <div style="font-size:14.5px;font-weight:900;color:#fff">${esc(it.name)}</div>
-                  ${unlocked
-                    ? `<div style="font-size:11.5px;color:${equipped ? "var(--gold-hi)" : "var(--emerald-hi)"};font-weight:800">
-                        ${equipped ? "눌러서 벗기" : "눌러서 착용하기!"}
-                      </div>`
-                    : `<div style="width:100%">
-                        <div style="font-size:11px;color:var(--tx2);font-weight:700;margin-bottom:4px">🔒 ${esc(it.condText)}</div>
-                        <div class="dq-bar" style="height:6px"><div class="dq-bar-fill" style="width:${pct}%"></div></div>
-                        <div style="font-size:10.5px;color:var(--mut);margin-top:3px;font-weight:800">${cur} / ${it.target}</div>
-                      </div>`
-                  }
-                </div>
-              `;
-            }).join("")}
-          </div>
+          ${filtered.length === 0
+            ? `<div class="dq-empty" style="padding:32px 16px">
+                <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:6px">🔒 이 부위에는 아직 보유한 장비가 없어요</div>
+                <div style="font-size:12.5px;color:var(--mut);margin-bottom:14px">체크를 해제하면 어떤 숙제로 해금할 수 있는지 미리 볼 수 있어요!</div>
+                <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="toggle-gear-owned">🔓 전체 장비 보기</button>
+              </div>`
+            : `<div class="dq-gear-grid">
+                ${filtered.map(it => {
+                  const unlocked = unlockedIds.has(it.id);
+                  const equipped = state.equippedGear?.[it.slot] === it.id;
+                  const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
+                  const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
+                  return `
+                    <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""}"
+                      ${unlocked ? `data-act="toggle-gear" data-gid="${it.id}"` : ""}>
+                      ${equipped ? `<span class="dq-partner-crown" style="background:var(--gold);color:#3b1900">✓ 착용중</span>` : ""}
+                      <div class="dq-gear-preview-box">${renderGearThumb(it)}</div>
+                      <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
+                      <div style="font-size:14.5px;font-weight:900;color:#fff">${esc(it.name)}</div>
+                      ${unlocked
+                        ? `<div style="font-size:11.5px;color:${equipped ? "var(--gold-hi)" : "var(--emerald-hi)"};font-weight:800">
+                            ${equipped ? "눌러서 벗기" : "눌러서 착용하기!"}
+                          </div>`
+                        : `<div style="width:100%">
+                            <div style="font-size:11px;color:var(--tx2);font-weight:700;margin-bottom:4px">🔒 ${esc(it.condText)}</div>
+                            <div class="dq-bar" style="height:6px"><div class="dq-bar-fill" style="width:${pct}%"></div></div>
+                            <div style="font-size:10.5px;color:var(--mut);margin-top:3px;font-weight:800">${cur} / ${it.target}</div>
+                          </div>`
+                      }
+                    </div>
+                  `;
+                }).join("")}
+              </div>`}
         </section>
       </div>
     `;
@@ -2813,6 +2973,377 @@
   /* ============================================================================
      MY JURASSIC PARK DIORAMA & DINOSAUR FOSSIL MUSEUM VIEW
      ============================================================================ */
+  function getTerrainMotion(dinoId, baseMotion, terrain) {
+    if (dinoId === "pteranodon") return terrain === "sky" ? "soar" : "hop";
+    if (dinoId === "spinosaurus") return terrain === "water" ? "swim" : "roam";
+    return baseMotion;
+  }
+
+  function getParkDinoSpot(dinoId) {
+    const base = PARK?.PARK_SPOTS[dinoId] || { x: 40, y: 70, s: 0.9, motion: "roam", flip: false, zone: "초원" };
+    const custom = state.parkPositions && state.parkPositions[dinoId];
+    const customValid = custom && typeof custom.x === "number" && typeof custom.y === "number"
+      && (!PARK?.canDinoGoTo || PARK.canDinoGoTo(dinoId, custom.x, custom.y));
+    if (!customValid) {
+      return { ...base, custom: false };
+    }
+    const terrain = PARK?.getTerrainAt ? PARK.getTerrainAt(custom.x, custom.y) : "land";
+    const motion = getTerrainMotion(dinoId, base.motion, terrain);
+    const depthScale = motion === "soar"
+      ? base.s
+      : Number((base.s * (0.76 + (custom.y / 100) * 0.30)).toFixed(3));
+    return {
+      ...base,
+      x: custom.x,
+      y: custom.y,
+      flip: Boolean(custom.flip),
+      motion,
+      s: Math.max(0.70, Math.min(1.14, depthScale)),
+      custom: true
+    };
+  }
+
+  function getHabitatLabel(dinoId) {
+    if (!PARK?.getHabitat) return "";
+    return PARK.getHabitat(dinoId)
+      .map(t => `${PARK.TERRAIN_LABELS[t].icon} ${PARK.TERRAIN_LABELS[t].label}`)
+      .join(" · ");
+  }
+
+  function getAllowZoneClasses(dinoId) {
+    if (!dinoId || !PARK?.getHabitat) return "";
+    return PARK.getHabitat(dinoId).map(t => `allow-${t}`).join(" ");
+  }
+
+  function hasCustomParkPositions() {
+    return Boolean(state.parkPositions && Object.keys(state.parkPositions).length > 0);
+  }
+
+  function clearParkMoveTimers() {
+    if (ui.parkMoveTimers) {
+      for (const t of Object.values(ui.parkMoveTimers)) clearTimeout(t);
+      ui.parkMoveTimers = {};
+    }
+  }
+
+  function getParkHintMarkup(fossilOn) {
+    if (ui.parkSelectedDinoId) {
+      const selDino = getDino(ui.parkSelectedDinoId);
+      const canVar = selDino ? isVariantUnlocked(selDino.id) : false;
+      const useVar = ui.parkVariantMode === "variant" ? canVar : ui.parkVariantMode === "base" ? false : (selDino ? isDinoUsingVariant(selDino.id) : false);
+      const selName = selDino ? getDinoDisplayNick(selDino, useVar) : "공룡";
+      const habLabel = selDino ? getHabitatLabel(selDino.id) : "";
+      return `
+        <span class="dq-park-move-active">
+          🐾 <b>${esc(selName)}</b> 선택됨! 가고 싶은 곳을 톡 눌러보세요
+          ${habLabel ? `<span class="dq-park-habitat-pill">갈 수 있는 곳: ${habLabel}</span>` : ""}
+          <button class="dq-park-mini-cancel" data-act="park-deselect">✕ 선택 해제</button>
+        </span>
+      `;
+    }
+    return fossilOn
+      ? "🦖 공룡을 터치하고 원하는 곳을 누르면 직접 걸어가요! 언덕 위 <b>🏛️ 박물관</b>과 <b>⛏️ 발굴장</b>도 눌러 보세요."
+      : "🦖 공룡을 터치해 선택한 다음, 공원에서 원하는 위치를 누르면 그쪽으로 움직여요!";
+  }
+
+  function syncParkSelectionDOM() {
+    const stage = document.querySelector(".dq-park-stage");
+    if (!stage) return false;
+    const selId = ui.parkSelectedDinoId;
+    stage.classList.toggle("has-selected", Boolean(selId));
+    stage.classList.remove("allow-land", "allow-water", "allow-sky");
+    if (selId) getAllowZoneClasses(selId).split(" ").filter(Boolean).forEach(c => stage.classList.add(c));
+    stage.querySelectorAll(".dq-park-dino").forEach(el => {
+      const did = el.dataset.did;
+      const isSel = did === selId;
+      el.classList.toggle("selected", isSel);
+      const spot = getParkDinoSpot(did);
+      const hasBub = Boolean(el.querySelector(".dq-park-bubble"));
+      const isMoving = el.classList.contains("moving");
+      el.style.zIndex = String(Math.round(spot.y) + (hasBub ? 40 : 0) + (isMoving ? 25 : isSel ? 20 : 0));
+    });
+    const hintEl = document.getElementById("dq-park-hint-bar");
+    if (hintEl) hintEl.innerHTML = getParkHintMarkup(isFossilEnabled());
+    const resetBtn = document.getElementById("dq-park-reset-btn");
+    if (resetBtn) resetBtn.style.display = hasCustomParkPositions() ? "" : "none";
+    return true;
+  }
+
+  function getParkBubblePosClasses(spot) {
+    const cls = [];
+    if (spot && spot.y < 32) cls.push("pos-below");
+    if (spot && spot.x < 18) cls.push("align-left");
+    else if (spot && spot.x > 82) cls.push("align-right");
+    return cls.join(" ");
+  }
+
+  function buildDinoLinePool(d, context = "park") {
+    if (!d) return [];
+    const childName = state.settings.childName || "탐험가";
+    const staticBase = [
+      ...(Array.isArray(d.parkLines) ? d.parkLines : []),
+      ...(Array.isArray(d.cheer) ? d.cheer : []),
+      ...(d.fact ? [d.fact] : [])
+    ].map(raw => String(raw || "").replace(/지섭/g, childName));
+    const base = [...staticBase];
+    if (context === "park") {
+      if (ui.parkTime === "day") {
+        base.push(
+          "햇살이 따끈따끈~ 일광욕하기 딱 좋은 날씨야! ☀️",
+          "낮 공원에서 다 같이 숨바꼭질할까? 🌿"
+        );
+      } else if (ui.parkTime === "sunset") {
+        base.push(
+          "와~ 노을이 주황빛으로 물들었어! 너무 멋지다 🌅",
+          "해 질 녘 공원 산책이 제일 기분 좋아! 🌇"
+        );
+      } else if (ui.parkTime === "night") {
+        base.push(
+          "반딧불이 반짝반짝! 밤 공원 진짜 신비롭지? ✨",
+          "별 보면서 살짝 졸려~ 그래도 같이 놀자! 🌙",
+          "별똥별 보이면 소원 빌어야지! 🌠"
+        );
+      }
+      const canVar = isVariantUnlocked(d.id);
+      const useVar = ui.parkVariantMode === "variant" ? canVar : ui.parkVariantMode === "base" ? false : isDinoUsingVariant(d.id);
+      if (useVar) {
+        base.push("내 반짝이는 스페셜 변이 컬러 멋지지? ✨");
+      }
+      if (state.partnerDino === d.id) {
+        base.push(`나는 ${childName}의 든든한 파트너 공룡이야! ⭐`);
+        if (Object.values(state.equippedGear || {}).some(Boolean)) {
+          base.push("내 장비 어때? 멋있게 꾸며줘서 고마워! 👑");
+        }
+      }
+      const spot = getParkDinoSpot(d.id);
+      if (spot.y > 66 && spot.x > 64) {
+        base.push("시원한 라군 호숫가다! 물장구 쳐볼까? 💦");
+      } else if (spot.y < 36) {
+        base.push("우와~ 높은 곳에서 보니 공원이 한눈에 다 보여! ⛰️");
+      }
+    }
+    const seen = new Set();
+    const out = [];
+    for (const raw of base) {
+      const line = String(raw || "").trim();
+      if (line && !seen.has(line)) {
+        seen.add(line);
+        out.push(line);
+      }
+    }
+    return out;
+  }
+
+  function pickDinoLine(d, context = "park") {
+    if (!d) return "";
+    const key = `${context}:${d.id}`;
+    if (!ui.dinoLineBag) ui.dinoLineBag = {};
+    if (!ui.dinoLastLine) ui.dinoLastLine = {};
+
+    const pool = buildDinoLinePool(d, context);
+    if (pool.length === 0) return "";
+    if (pool.length === 1) return pool[0];
+
+    let bag = Array.isArray(ui.dinoLineBag[key]) ? ui.dinoLineBag[key].filter(l => pool.includes(l)) : [];
+    if (bag.length === 0) {
+      bag = [...pool];
+      for (let i = bag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [bag[i], bag[j]] = [bag[j], bag[i]];
+      }
+      const last = ui.dinoLastLine[key];
+      if (last && bag.length > 1 && bag[bag.length - 1] === last) {
+        const swapIdx = Math.floor(Math.random() * (bag.length - 1));
+        [bag[bag.length - 1], bag[swapIdx]] = [bag[swapIdx], bag[bag.length - 1]];
+      }
+    }
+    const chosen = bag.pop();
+    ui.dinoLineBag[key] = bag;
+    ui.dinoLastLine[key] = chosen;
+    return chosen;
+  }
+
+  function showParkBubbleDOM(did, text) {
+    ui.parkBubble = { dinoId: did, text };
+    if (ui.parkBubbleTimer) clearTimeout(ui.parkBubbleTimer);
+    if (ui.parkBubbleRemoveTimer) clearTimeout(ui.parkBubbleRemoveTimer);
+    const stage = document.querySelector(".dq-park-stage");
+    if (stage) {
+      stage.querySelectorAll(".dq-park-dino").forEach(el => {
+        el.querySelectorAll(".dq-park-bubble").forEach(b => b.remove());
+        el.classList.remove("talking");
+      });
+      const targetEl = stage.querySelector(`.dq-park-dino[data-did="${did}"]`);
+      if (targetEl) {
+        targetEl.classList.add("talking");
+        const spot = getParkDinoSpot(did);
+        const posCls = getParkBubblePosClasses(spot);
+        const bub = document.createElement("div");
+        bub.className = `dq-park-bubble ${posCls}`.trim();
+        bub.textContent = text;
+        targetEl.insertBefore(bub, targetEl.firstChild);
+        const rig = targetEl.querySelector(".sd-sprite-stage");
+        if (rig) {
+          rig.classList.remove("is-roaring");
+          void rig.offsetWidth;
+          rig.classList.add("is-roaring");
+          setTimeout(() => rig.classList.remove("is-roaring"), 1150);
+        }
+      }
+      syncParkSelectionDOM();
+    } else {
+      render();
+    }
+    const holdMs = Math.max(3800, Math.min(5400, 1800 + String(text || "").length * 75));
+    ui.parkBubbleTimer = setTimeout(() => {
+      const st = document.querySelector(".dq-park-stage");
+      if (st) {
+        st.querySelectorAll(".dq-park-bubble").forEach(b => b.classList.add("fade-out"));
+      }
+      ui.parkBubbleRemoveTimer = setTimeout(() => {
+        ui.parkBubble = null;
+        const st2 = document.querySelector(".dq-park-stage");
+        if (st2) {
+          st2.querySelectorAll(".dq-park-bubble").forEach(b => b.remove());
+          st2.querySelectorAll(".dq-park-dino.talking").forEach(el => el.classList.remove("talking"));
+          syncParkSelectionDOM();
+        }
+      }, 220);
+    }, holdMs);
+  }
+
+  function setParkMotionClass(dinoEl, motion) {
+    if (!dinoEl) return;
+    dinoEl.classList.remove("motion-roam", "motion-hop", "motion-soar", "motion-swim");
+    dinoEl.classList.add(`motion-${motion}`);
+  }
+
+  function denyParkMove(did, tx, ty, stageEl) {
+    const terrain = PARK.getTerrainAt(tx, ty);
+    sfx.error();
+    const ping = document.createElement("div");
+    ping.className = "dq-park-target-ping deny";
+    ping.style.left = `${tx}%`;
+    ping.style.top = `${ty}%`;
+    ping.innerHTML = `<span class="dq-ping-ring"></span><span class="dq-ping-paw">🚫</span>`;
+    stageEl.appendChild(ping);
+    setTimeout(() => ping.remove(), 800);
+
+    const dinoEl = stageEl.querySelector(`.dq-park-dino[data-did="${did}"]`);
+    if (dinoEl) {
+      dinoEl.classList.remove("denied");
+      void dinoEl.offsetWidth;
+      dinoEl.classList.add("denied");
+      setTimeout(() => dinoEl.classList.remove("denied"), 480);
+    }
+    showParkBubbleDOM(did, PARK.getRefusalLine(did, terrain));
+  }
+
+  function moveParkDinoTo(did, txRaw, tyRaw, stageEl) {
+    const d = getDino(did);
+    if (!d || !stageEl) return;
+    const tx = Math.round(Math.max(6, Math.min(94, txRaw)) * 10) / 10;
+    const ty = Math.round(Math.max(16, Math.min(95, tyRaw)) * 10) / 10;
+    if (PARK?.canDinoGoTo && !PARK.canDinoGoTo(did, tx, ty)) {
+      denyParkMove(did, tx, ty, stageEl);
+      return;
+    }
+    const oldSpot = getParkDinoSpot(did);
+    let nextFlip = oldSpot.flip;
+    if (tx < oldSpot.x - 0.6) nextFlip = true;
+    else if (tx > oldSpot.x + 0.6) nextFlip = false;
+
+    const dist = Math.hypot(tx - oldSpot.x, ty - oldSpot.y);
+    const durMs = Math.round(Math.min(1350, Math.max(380, dist * 16)));
+
+    if (!state.parkPositions || typeof state.parkPositions !== "object") state.parkPositions = {};
+    state.parkPositions[did] = { x: tx, y: ty, flip: nextFlip };
+    saveState();
+
+    const newSpot = getParkDinoSpot(did);
+    if (typeof sfx.parkMove === "function") sfx.parkMove(newSpot.motion);
+    else sfx.tap();
+
+    // Visual target tap ping on the park map
+    const ping = document.createElement("div");
+    ping.className = "dq-park-target-ping";
+    ping.style.left = `${tx}%`;
+    ping.style.top = `${ty}%`;
+    ping.innerHTML = `<span class="dq-ping-ring"></span><span class="dq-ping-paw">🐾</span>`;
+    stageEl.appendChild(ping);
+    setTimeout(() => ping.remove(), 750);
+
+    const dinoEl = stageEl.querySelector(`.dq-park-dino[data-did="${did}"]`);
+    if (dinoEl) {
+      const innerEl = dinoEl.querySelector(".dq-park-dino-inner");
+      if (innerEl) innerEl.classList.toggle("flip", nextFlip);
+      dinoEl.style.setProperty("--move-dur", `${durMs}ms`);
+      dinoEl.style.setProperty("--p-scale", String(newSpot.s));
+      setParkMotionClass(dinoEl, newSpot.motion);
+      dinoEl.classList.remove("arrived");
+      dinoEl.classList.add("moving");
+      dinoEl.style.zIndex = String(Math.round(ty) + 25 + (dinoEl.querySelector(".dq-park-bubble") ? 40 : 0));
+      // Trigger smooth CSS transition
+      dinoEl.style.left = `${tx}%`;
+      dinoEl.style.top = `${ty}%`;
+      const activeBub = dinoEl.querySelector(".dq-park-bubble");
+      if (activeBub) {
+        activeBub.classList.remove("pos-below", "align-left", "align-right");
+        const newPosCls = getParkBubblePosClasses(newSpot);
+        if (newPosCls) newPosCls.split(" ").forEach(c => activeBub.classList.add(c));
+      }
+
+      if (ui.parkMoveTimers[did]) clearTimeout(ui.parkMoveTimers[did]);
+      ui.parkMoveTimers[did] = setTimeout(() => {
+        delete ui.parkMoveTimers[did];
+        dinoEl.classList.remove("moving");
+        dinoEl.classList.add("arrived");
+        setTimeout(() => dinoEl.classList.remove("arrived"), 320);
+        syncParkSelectionDOM();
+      }, durMs + 20);
+    } else {
+      render();
+    }
+
+    const resetBtn = document.getElementById("dq-park-reset-btn");
+    if (resetBtn) resetBtn.style.display = "";
+  }
+
+  function resetAllParkPositions() {
+    if (!hasCustomParkPositions()) return;
+    const stage = document.querySelector(".dq-park-stage");
+    const prevKeys = Object.keys(state.parkPositions || {});
+    state.parkPositions = {};
+    saveState();
+    sfx.digSparkle();
+    showToast("🏞️ 공룡들이 모두 원래 자리로 돌아갔어요!");
+
+    if (stage) {
+      clearParkMoveTimers();
+      prevKeys.forEach(did => {
+        const dinoEl = stage.querySelector(`.dq-park-dino[data-did="${did}"]`);
+        if (!dinoEl) return;
+        const defSpot = getParkDinoSpot(did);
+        const innerEl = dinoEl.querySelector(".dq-park-dino-inner");
+        if (innerEl) innerEl.classList.toggle("flip", Boolean(defSpot.flip));
+        dinoEl.style.setProperty("--move-dur", "680ms");
+        dinoEl.style.setProperty("--p-scale", String(defSpot.s));
+        setParkMotionClass(dinoEl, defSpot.motion);
+        dinoEl.classList.add("moving");
+        dinoEl.style.left = `${defSpot.x}%`;
+        dinoEl.style.top = `${defSpot.y}%`;
+        ui.parkMoveTimers[did] = setTimeout(() => {
+          delete ui.parkMoveTimers[did];
+          dinoEl.classList.remove("moving");
+          syncParkSelectionDOM();
+        }, 700);
+      });
+      syncParkSelectionDOM();
+    } else {
+      render();
+    }
+  }
+
   function renderParkDioramaView(ownedSet, completedCount, claimableMuseumCount) {
     const fossilOn = isFossilEnabled();
     const bossOn = isBossRaidEnabled();
@@ -2820,11 +3351,16 @@
     const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 18;
     const unlockedDinos = DINOS.filter(d => isDinoUnlocked(d.id));
     const hasAnyVar = getUnlockedVariantCount() > 0;
+    const hasCustomPos = hasCustomParkPositions();
 
-    // Sort by y-coordinate for natural 2.5D painter's depth order
+    if (ui.parkSelectedDinoId && !isDinoUnlocked(ui.parkSelectedDinoId)) {
+      ui.parkSelectedDinoId = null;
+    }
+
+    // Sort by current y-coordinate for natural 2.5D painter's depth order
     const sortedDinos = [...unlockedDinos].sort((a, b) => {
-      const ya = PARK?.PARK_SPOTS[a.id]?.y ?? 65;
-      const yb = PARK?.PARK_SPOTS[b.id]?.y ?? 65;
+      const ya = getParkDinoSpot(a.id).y;
+      const yb = getParkDinoSpot(b.id).y;
       return ya - yb;
     });
 
@@ -2840,12 +3376,13 @@
 
     return `
       <div class="dq-park-controls">
-        <div class="dq-park-hint">
-          ${fossilOn
-            ? "🦖 공룡을 탭하면 울음소리와 응원 대사가 나와요! 언덕 위 <b>🏛️ 박물관</b>과 <b>⛏️ 발굴장</b>을 눌러 바로 들어가 보세요."
-            : "🦖 내가 모은 공룡들이 사는 공원이에요! 공룡을 탭하면 울음소리와 응원 대사가 나와요."}
+        <div id="dq-park-hint-bar" class="dq-park-hint">
+          ${getParkHintMarkup(fossilOn)}
         </div>
         <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <button id="dq-park-reset-btn" class="dq-day-pill" data-act="park-reset-positions" style="${hasCustomPos ? "" : "display:none"}" title="공룡들을 원래 자리로 되돌리기">
+            ↺ 원래 자리
+          </button>
           <div class="dq-day-pills">
             <button class="dq-day-pill ${ui.parkTime === "day" ? "on" : ""}" data-act="park-time" data-val="day">☀️ 낮</button>
             <button class="dq-day-pill ${ui.parkTime === "sunset" ? "on" : ""}" data-act="park-time" data-val="sunset">🌅 노을</button>
@@ -2859,9 +3396,16 @@
         </div>
       </div>
 
-      <section class="dq-park-stage time-${ui.parkTime}">
+      <section class="dq-park-stage time-${ui.parkTime} ${ui.parkSelectedDinoId ? `has-selected ${getAllowZoneClasses(ui.parkSelectedDinoId)}` : ""}" data-act="park-stage-tap">
         <img class="dq-park-bg" src="./assets/sprites/park/park_diorama.jpg" alt="내 쥬라기 공원 디오라마" draggable="false" />
         <div class="dq-park-atmo"></div>
+        ${PARK?.ZONE_PATHS ? `
+          <svg class="dq-park-zones" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path class="dq-zone dq-zone-sky" d="${PARK.ZONE_PATHS.sky}" />
+            <path class="dq-zone dq-zone-land" d="${PARK.ZONE_PATHS.land}" fill-rule="evenodd" />
+            <path class="dq-zone dq-zone-water" d="${PARK.ZONE_PATHS.water}" />
+          </svg>
+        ` : ""}
         ${firefliesHtml}
 
         <!-- Clickable Museum Pavilion Hotspot -->
@@ -2904,18 +3448,21 @@
 
         <!-- Living Dinosaurs on the Island -->
         ${sortedDinos.map((d, idx) => {
-          const spot = PARK?.PARK_SPOTS[d.id] || { x: 40, y: 70, s: 0.9, motion: "roam", flip: false };
+          const spot = getParkDinoSpot(d.id);
           const isPartner = state.partnerDino === d.id;
+          const isSelected = ui.parkSelectedDinoId === d.id;
           const canVar = isVariantUnlocked(d.id);
           const useVar = ui.parkVariantMode === "variant" ? canVar : ui.parkVariantMode === "base" ? false : isDinoUsingVariant(d.id);
           const hasBubble = ui.parkBubble && ui.parkBubble.dinoId === d.id;
-          const zIdx = Math.round(spot.y) + (hasBubble ? 40 : 0);
+          const bubblePosCls = hasBubble ? getParkBubblePosClasses(spot) : "";
+          const zIdx = Math.round(spot.y) + (hasBubble ? 40 : 0) + (isSelected ? 20 : 0);
           return `
-            <div class="dq-park-dino motion-${spot.motion} ${isPartner ? "is-partner" : ""} ${hasBubble ? "talking" : ""}"
+            <div class="dq-park-dino motion-${spot.motion} ${isPartner ? "is-partner" : ""} ${isSelected ? "selected" : ""} ${hasBubble ? "talking" : ""}"
               style="left:${spot.x}%;top:${spot.y}%;z-index:${zIdx};--p-scale:${spot.s};--p-delay:${(idx * 0.42).toFixed(2)}s"
-              data-act="park-tap-dino" data-did="${d.id}" title="${esc(getDinoDisplayName(d, useVar))} 눌러서 포효 듣기!">
-              ${hasBubble ? `<div class="dq-park-bubble">${esc(ui.parkBubble.text)}</div>` : ""}
+              data-act="park-tap-dino" data-did="${d.id}">
+              ${hasBubble ? `<div class="dq-park-bubble ${bubblePosCls}">${esc(ui.parkBubble.text)}</div>` : ""}
               ${isPartner ? `<span class="dq-park-star">⭐</span>` : ""}
+              <span class="dq-park-select-ring" aria-hidden="true"></span>
               <div class="dq-park-dino-inner ${spot.flip ? "flip" : ""}">
                 ${renderDinoArt(d, { unlocked: true, equipped: isPartner ? state.equippedGear : {}, showStage: false, variant: useVar, mood: hasBubble ? "jump" : "idle" })}
               </div>
@@ -3491,11 +4038,117 @@
   }
 
   /* ============================================================================
+     CHILD DEVELOPER MAILBOX MODAL (아이의 개발자 우체통 · 아이디어 리스트)
+     ============================================================================ */
+  function renderDevMailboxModal() {
+    if (!ui.mailboxOpen) return "";
+    const allMsgs = Array.isArray(state.devMessages) ? state.devMessages : [];
+    const doneCount = allMsgs.filter(m => m.status === "done").length;
+    const activeCount = allMsgs.filter(m => m.status !== "done").length;
+    const justSeenSet = new Set(ui.mailboxJustSeenIds || []);
+
+    const filtered = allMsgs.filter(m => {
+      if (ui.mailboxFilter === "active") return m.status !== "done";
+      if (ui.mailboxFilter === "done") return m.status === "done";
+      return true;
+    });
+
+    return `
+      <div class="dq-modal-backdrop" data-act="close-mailbox">
+        <div class="dq-modal mailbox-modal">
+          <div class="dq-modal-head">
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <h3>📮 개발자 우체통</h3>
+              <span class="dq-mail-count-pill">💡 ${allMsgs.length}개 · ✅ 완성 ${doneCount}개</span>
+            </div>
+            <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="close-mailbox">닫기 ✕</button>
+          </div>
+          <div class="dq-modal-body">
+            <div class="dq-mail-composer">
+              <div class="dq-mail-composer-hd">
+                <span>💡 <b>${esc(state.settings.childName)}</b> 탐험가! 이런 기능이 있으면 좋겠다 싶은 걸 적어보세요</span>
+              </div>
+              <div class="dq-mail-cat-row" role="group" aria-label="아이디어 영역 태그">
+                ${DEV_MSG_CATEGORIES.map(c => `
+                  <button class="dq-mail-cat-chip ${ui.mailboxDraftCat === c.id ? "on" : ""}"
+                    style="--cat-c:${c.color}"
+                    data-act="mail-pick-cat" data-val="${c.id}">
+                    ${c.icon} ${esc(c.label)}
+                  </button>
+                `).join("")}
+              </div>
+              <textarea id="dq-mail-input" class="dq-textarea dq-mail-textarea" rows="3"
+                placeholder="예: 공룡 공원에서 공룡 터치하고 위치 눌러서 움직일수 있으면 좋겠어요">${esc(ui.mailboxDraftText || "")}</textarea>
+              <div class="dq-mail-composer-foot">
+                <span class="dq-mail-mic-tip">🎤 아이패드 키보드의 마이크 버튼으로 말해서 적을 수도 있어요!</span>
+                <button class="dq-btn dq-btn-green" data-act="mail-submit">📮 개발자에게 보내기!</button>
+              </div>
+            </div>
+
+            <div class="dq-mail-list-hd">
+              <div class="dq-mail-list-title">📜 내가 남긴 아이디어 리스트</div>
+              <div class="dq-mail-filters">
+                <button class="dq-day-pill ${ui.mailboxFilter === "all" ? "on" : ""}" data-act="mail-filter" data-val="all">전체 (${allMsgs.length})</button>
+                <button class="dq-day-pill ${ui.mailboxFilter === "active" ? "on" : ""}" data-act="mail-filter" data-val="active">📮 진행·대기 (${activeCount})</button>
+                <button class="dq-day-pill ${ui.mailboxFilter === "done" ? "on" : ""}" data-act="mail-filter" data-val="done">✅ 완성 (${doneCount})</button>
+              </div>
+            </div>
+
+            <div class="dq-mail-list">
+              ${filtered.length === 0
+                ? `<div class="dq-empty" style="padding:26px">
+                    ${ui.mailboxFilter === "done"
+                      ? "아직 완성된 아이디어가 없어요. 곧 멋진 기능이 추가될 거예요! 🦖"
+                      : "아직 보낸 편지가 없어요. 위 입력창에 첫 번째 아이디어를 남겨 보세요! ✨"}
+                   </div>`
+                : filtered.map(m => {
+                    const cat = getDevMsgCategory(m.category);
+                    const st = getDevMsgStatus(m.status);
+                    const isJustSeen = justSeenSet.has(m.id);
+                    const canChildDel = m.status === "new" && !m.reply;
+                    const showTryPark = m.category === "park" && m.status === "done";
+                    return `
+                      <article class="dq-mail-card ${st.cls} ${isJustSeen ? "just-seen" : ""}">
+                        <div class="dq-mail-card-top">
+                          <div class="dq-mail-badges">
+                            <span class="dq-mail-tag" style="--cat-c:${cat.color}">${cat.icon} ${esc(cat.label)}</span>
+                            <span class="dq-mail-status ${st.cls}">${st.icon} ${esc(st.label)}</span>
+                            ${isJustSeen ? `<span class="dq-mail-new-pill">✨ 새 소식!</span>` : ""}
+                          </div>
+                          <div class="dq-mail-meta-right">
+                            <span class="dq-mail-date">${esc(formatKoDate(m.createdAt))}</span>
+                            ${canChildDel ? `<button class="dq-mail-del-btn" data-act="mail-child-del" data-mid="${esc(m.id)}" title="지우기">🗑️</button>` : ""}
+                          </div>
+                        </div>
+                        <div class="dq-mail-text">${esc(m.text)}</div>
+                        ${m.reply ? `
+                          <div class="dq-mail-reply">
+                            <div class="dq-mail-reply-hd">🧑‍💻 개발자 답장</div>
+                            <div class="dq-mail-reply-body">${esc(m.reply)}</div>
+                          </div>
+                        ` : ""}
+                        ${showTryPark ? `
+                          <div class="dq-mail-card-foot">
+                            <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="mail-go-park">🏞️ 공룡 공원에서 바로 해보기 →</button>
+                          </div>
+                        ` : ""}
+                      </article>
+                    `;
+                  }).join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ============================================================================
      FULL PARENT ADMIN MODAL
      ============================================================================ */
   function renderParentAdminModal() {
     if (!ui.adminOpen) return "";
     const waitingItems = getAllWaitingItems();
+    const openMailCount = getOpenMailboxCount();
 
     let tabBody = "";
     if (ui.adminTab === "review") {
@@ -3504,6 +4157,8 @@
       tabBody = renderAdminScheduleTab();
     } else if (ui.adminTab === "shop") {
       tabBody = renderAdminShopTab();
+    } else if (ui.adminTab === "mailbox") {
+      tabBody = renderAdminMailboxTab();
     } else if (ui.adminTab === "settings") {
       tabBody = renderAdminSettingsTab();
     }
@@ -3524,6 +4179,9 @@
             </button>
             <button class="dq-admin-tab ${ui.adminTab === "shop" ? "on" : ""}" data-act="admin-tab" data-val="shop">
               🎁 선물 상점 · 코인
+            </button>
+            <button class="dq-admin-tab ${ui.adminTab === "mailbox" ? "on" : ""}" data-act="admin-tab" data-val="mailbox">
+              📮 아이디어 ${openMailCount > 0 ? `(${openMailCount})` : ""}
             </button>
             <button class="dq-admin-tab ${ui.adminTab === "settings" ? "on" : ""}" data-act="admin-tab" data-val="settings">
               ⚙️ 설정 · 백업
@@ -4102,6 +4760,96 @@
     `;
   }
 
+  function renderAdminMailboxTab() {
+    const msgs = Array.isArray(state.devMessages) ? state.devMessages : [];
+    const cntNew = msgs.filter(m => m.status === "new").length;
+    const cntWorking = msgs.filter(m => m.status === "working").length;
+    const cntDone = msgs.filter(m => m.status === "done").length;
+    const cntLater = msgs.filter(m => m.status === "later").length;
+
+    const filtered = msgs.filter(m => {
+      if (ui.adminMailFilter === "all") return true;
+      return m.status === ui.adminMailFilter;
+    });
+
+    return `
+      <div class="dq-section-box">
+        <div class="dq-section-h">
+          <span>📮 ${esc(state.settings.childName)}의 개발자 아이디어 요청 (${msgs.length}건)</span>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="admin-mail-copy-open">📋 미완료 목록 복사</button>
+            <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="admin-mail-copy-all">📋 전체 복사</button>
+          </div>
+        </div>
+        <div class="dq-admin-mail-summary">
+          <span>📮 새 요청 <b>${cntNew}</b></span>
+          <span>🛠️ 만드는 중 <b>${cntWorking}</b></span>
+          <span>✅ 완성됨 <b>${cntDone}</b></span>
+          <span>💭 고민 중 <b>${cntLater}</b></span>
+        </div>
+        <div style="font-size:12px;color:var(--mut);font-weight:700;margin-top:6px">
+          상태를 바꾸거나 답장을 남기면 아이 화면 상단 <b>📮 우체통</b> 아이콘에 새 소식 알림이 표시됩니다.
+        </div>
+        ${ui.adminMailCopyMode === "preview" ? `
+          <div style="margin-top:10px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+              <span style="font-size:12px;color:var(--teal);font-weight:800">📋 Markdown 목록 (복사해서 메모나 개발 프롬프트에 붙여넣으세요)</span>
+              <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="admin-mail-copy-close">접기</button>
+            </div>
+            <textarea class="dq-textarea" rows="5" readonly onfocus="this.select()">${esc(ui.adminMailCopyText)}</textarea>
+          </div>
+        ` : ""}
+      </div>
+
+      <div class="dq-section-box">
+        <div class="dq-admin-mail-filters">
+          <button class="dq-day-pill ${ui.adminMailFilter === "all" ? "on" : ""}" data-act="admin-mail-filter" data-val="all">전체 (${msgs.length})</button>
+          <button class="dq-day-pill ${ui.adminMailFilter === "new" ? "on" : ""}" data-act="admin-mail-filter" data-val="new">📮 전달 완료 (${cntNew})</button>
+          <button class="dq-day-pill ${ui.adminMailFilter === "working" ? "on" : ""}" data-act="admin-mail-filter" data-val="working">🛠️ 만드는 중 (${cntWorking})</button>
+          <button class="dq-day-pill ${ui.adminMailFilter === "done" ? "on" : ""}" data-act="admin-mail-filter" data-val="done">✅ 완성 (${cntDone})</button>
+          <button class="dq-day-pill ${ui.adminMailFilter === "later" ? "on" : ""}" data-act="admin-mail-filter" data-val="later">💭 고민 중 (${cntLater})</button>
+        </div>
+
+        ${filtered.length === 0
+          ? `<div class="dq-empty" style="padding:22px">해당 상태의 아이디어 요청이 없어요.</div>`
+          : filtered.map(m => {
+              const st = getDevMsgStatus(m.status);
+              return `
+                <article class="dq-admin-mail-card ${st.cls}">
+                  <div class="dq-admin-mail-top">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                      <select class="dq-select dq-admin-mail-cat-sel" data-mail-cat-id="${esc(m.id)}" aria-label="카테고리 변경">
+                        ${DEV_MSG_CATEGORIES.map(c => `<option value="${c.id}" ${m.category === c.id ? "selected" : ""}>${c.icon} ${esc(c.label)}</option>`).join("")}
+                      </select>
+                      <span class="dq-mail-date">${esc(formatKoDate(m.createdAt))}</span>
+                      <span class="dq-mail-status ${st.cls}">${st.icon} ${esc(st.label)}</span>
+                    </div>
+                    <button class="dq-btn dq-btn-danger dq-btn-sm" data-act="admin-mail-del" data-mid="${esc(m.id)}">🗑️ 삭제</button>
+                  </div>
+
+                  <div class="dq-admin-mail-text">${esc(m.text)}</div>
+
+                  <div class="dq-admin-status-row">
+                    ${DEV_MSG_STATUSES.map(opt => `
+                      <button class="dq-admin-st-btn ${opt.cls} ${m.status === opt.id ? "on" : ""}"
+                        data-act="admin-mail-status" data-mid="${esc(m.id)}" data-val="${opt.id}">
+                        ${opt.icon} ${esc(opt.label)}
+                      </button>
+                    `).join("")}
+                  </div>
+
+                  <div class="dq-admin-reply-row">
+                    <input id="dq-admin-reply-${esc(m.id)}" class="dq-input" value="${esc(m.reply || "")}"
+                      placeholder="아이에게 보여줄 개발자 답장 입력 (예: 좋은 아이디어! 넣어줄게 🦖)" />
+                    <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="admin-mail-reply-save" data-mid="${esc(m.id)}">💬 답장 저장</button>
+                  </div>
+                </article>
+              `;
+            }).join("")}
+      </div>
+    `;
+  }
+
   function renderFocusTimer() {
     if (!ui.timer) return "";
     return `
@@ -4148,6 +4896,7 @@
       ${renderHatchModal()}
       ${renderDinoDetailModal()}
       ${renderDigModal()}
+      ${renderDevMailboxModal()}
     `;
     renderToast();
     syncBossBattleFX();
@@ -4165,6 +4914,10 @@
     switch (act) {
       case "nav":
         sfx.tap();
+        if (ui.tab === "park" && btn.dataset.val !== "park") {
+          ui.parkSelectedDinoId = null;
+          clearParkMoveTimers();
+        }
         ui.tab = btn.dataset.val;
         if (ui.tab === "dinos" && ui.dinoSubTab === "wardrobe") markGearSeen();
         render();
@@ -4188,6 +4941,13 @@
       case "gear-slot":
         sfx.tap();
         ui.gearSlot = btn.dataset.val;
+        render();
+        break;
+
+      case "toggle-gear-owned":
+        sfx.tap();
+        state.settings.gearOwnedOnly = !state.settings.gearOwnedOnly;
+        saveState();
         render();
         break;
 
@@ -4273,6 +5033,10 @@
         }
         sfx.tap();
         ui.parkView = btn.dataset.val === "museum" ? "museum" : "diorama";
+        if (ui.parkView !== "diorama") {
+          ui.parkSelectedDinoId = null;
+          clearParkMoveTimers();
+        }
         render();
         break;
 
@@ -4294,17 +5058,142 @@
         const d = getDino(did);
         if (!d) break;
         sfx.roar(did);
-        const lines = [...(d.cheer || []), d.fact];
-        const text = lines[Math.floor(Math.random() * lines.length)];
-        ui.parkBubble = { dinoId: did, text };
-        if (ui.parkBubbleTimer) clearTimeout(ui.parkBubbleTimer);
-        ui.parkBubbleTimer = setTimeout(() => {
-          ui.parkBubble = null;
-          if (ui.tab === "park" && ui.parkView === "diorama") render();
-        }, 2800);
+        const wasSelected = ui.parkSelectedDinoId === did;
+        ui.parkSelectedDinoId = wasSelected ? null : did;
+        const text = pickDinoLine(d, "park");
+        showParkBubbleDOM(did, text);
+        break;
+      }
+
+      case "park-stage-tap": {
+        if (ev.target.closest(".dq-park-dino, .dq-park-hotspot, button")) break;
+        if (!ui.parkSelectedDinoId) {
+          sfx.tap();
+          const hintEl = document.getElementById("dq-park-hint-bar");
+          if (hintEl) {
+            hintEl.classList.remove("nudge");
+            void hintEl.offsetWidth;
+            hintEl.classList.add("nudge");
+          }
+          break;
+        }
+        const rect = btn.getBoundingClientRect();
+        if (!rect.width || !rect.height) break;
+        const tx = ((ev.clientX - rect.left) / rect.width) * 100;
+        const ty = ((ev.clientY - rect.top) / rect.height) * 100;
+        moveParkDinoTo(ui.parkSelectedDinoId, tx, ty, btn);
+        break;
+      }
+
+      case "park-deselect":
+        sfx.tap();
+        ui.parkSelectedDinoId = null;
+        if (!syncParkSelectionDOM()) render();
+        break;
+
+      case "park-reset-positions":
+        resetAllParkPositions();
+        break;
+
+      /* Child Developer Mailbox (개발자 우체통) */
+      case "open-mailbox": {
+        sfx.tap();
+        ui.mailboxOpen = true;
+        if (!ui.mailboxDraftText) {
+          ui.mailboxDraftCat = VALID_DEV_CAT_IDS.has(ui.tab) ? ui.tab : "idea";
+        }
+        const unreadIds = (state.devMessages || []).filter(m => m && m.childUnread).map(m => m.id);
+        ui.mailboxJustSeenIds = unreadIds;
+        if (unreadIds.length > 0) {
+          state.devMessages.forEach(m => { if (m) m.childUnread = false; });
+          saveState();
+        }
         render();
         break;
       }
+
+      case "close-mailbox": {
+        const ta = document.getElementById("dq-mail-input");
+        if (ta) ui.mailboxDraftText = ta.value;
+        ui.mailboxOpen = false;
+        ui.mailboxJustSeenIds = [];
+        render();
+        break;
+      }
+
+      case "mail-pick-cat": {
+        const ta = document.getElementById("dq-mail-input");
+        if (ta) ui.mailboxDraftText = ta.value;
+        sfx.tap();
+        ui.mailboxDraftCat = VALID_DEV_CAT_IDS.has(btn.dataset.val) ? btn.dataset.val : "idea";
+        render();
+        break;
+      }
+
+      case "mail-filter": {
+        const ta = document.getElementById("dq-mail-input");
+        if (ta) ui.mailboxDraftText = ta.value;
+        sfx.tap();
+        ui.mailboxFilter = btn.dataset.val || "all";
+        render();
+        break;
+      }
+
+      case "mail-submit": {
+        const ta = document.getElementById("dq-mail-input");
+        const text = (ta ? ta.value : ui.mailboxDraftText || "").trim();
+        if (!text) {
+          sfx.error();
+          showToast("✏️ 개발자에게 전할 내용을 먼저 적어주세요!");
+          if (ta) ta.focus();
+          break;
+        }
+        const nowStr = todayStr();
+        const msg = {
+          id: uid("devmsg"),
+          category: VALID_DEV_CAT_IDS.has(ui.mailboxDraftCat) ? ui.mailboxDraftCat : "idea",
+          text,
+          status: "new",
+          reply: "",
+          createdAt: nowStr,
+          updatedAt: nowStr,
+          childUnread: false,
+          parentUnread: true
+        };
+        if (!Array.isArray(state.devMessages)) state.devMessages = [];
+        state.devMessages.unshift(msg);
+        ui.mailboxDraftText = "";
+        if (ui.mailboxFilter === "done") ui.mailboxFilter = "all";
+        saveState();
+        sfx.submit();
+        const r = btn.getBoundingClientRect();
+        burstConfetti(r.left + r.width / 2, r.top + r.height / 2, 34, 0.85);
+        showToast("📮 개발자 우체통에 쏙! 멋진 아이디어 고마워요!");
+        render();
+        break;
+      }
+
+      case "mail-child-del": {
+        const mid = btn.dataset.mid;
+        const target = (state.devMessages || []).find(m => m.id === mid);
+        if (!target || target.status !== "new" || target.reply) break;
+        if (!window.confirm("이 아이디어를 우체통에서 지울까요?")) break;
+        state.devMessages = state.devMessages.filter(m => m.id !== mid);
+        saveState();
+        sfx.tap();
+        showToast("🗑️ 우체통에서 지웠어요");
+        render();
+        break;
+      }
+
+      case "mail-go-park":
+        sfx.tap();
+        ui.mailboxOpen = false;
+        ui.mailboxJustSeenIds = [];
+        ui.tab = "park";
+        ui.parkView = "diorama";
+        render();
+        break;
 
       case "open-dig":
         if (!isFossilEnabled()) {
@@ -4467,8 +5356,7 @@
       case "pet-dino": {
         sfx.roar(state.partnerDino);
         const partner = getDino(state.partnerDino);
-        const lines = [...partner.cheer, partner.fact];
-        const msg = lines[Math.floor(Math.random() * lines.length)];
+        const msg = pickDinoLine(partner, "home");
         triggerDinoMood("roar", msg);
         break;
       }
@@ -4745,12 +5633,21 @@
         ui.adminEditingTplId = null;
         ui.adminEditingShopId = null;
         ui.adminIoMode = "none";
+        ui.adminMailCopyMode = "none";
         render();
         break;
       case "admin-tab":
         sfx.tap();
         ui.adminTab = btn.dataset.val;
         ui.adminIoMode = "none";
+        ui.adminMailCopyMode = "none";
+        if (ui.adminTab === "mailbox" && Array.isArray(state.devMessages)) {
+          let changed = false;
+          state.devMessages.forEach(m => {
+            if (m && m.parentUnread) { m.parentUnread = false; changed = true; }
+          });
+          if (changed) saveState();
+        }
         render();
         break;
       case "admin-sched-mode":
@@ -5181,6 +6078,98 @@
         showToast("⬇️ JSON 백업 파일 다운로드됨");
         break;
       }
+
+      /* Admin Developer Mailbox Management */
+      case "admin-mail-filter":
+        sfx.tap();
+        ui.adminMailFilter = btn.dataset.val || "all";
+        render();
+        break;
+
+      case "admin-mail-status": {
+        const mid = btn.dataset.mid;
+        const nextStatus = btn.dataset.val;
+        if (!VALID_DEV_STATUS_IDS.has(nextStatus)) break;
+        const msg = (state.devMessages || []).find(m => m.id === mid);
+        if (!msg) break;
+        const replyInp = document.getElementById(`dq-admin-reply-${mid}`);
+        let replyChanged = false;
+        if (replyInp) {
+          const typedReply = replyInp.value.trim();
+          if (typedReply !== (msg.reply || "")) {
+            msg.reply = typedReply;
+            replyChanged = true;
+          }
+        }
+        msg.status = nextStatus;
+        msg.updatedAt = todayStr();
+        msg.parentUnread = false;
+        if (nextStatus !== "new" || replyChanged) msg.childUnread = true;
+        saveState();
+        sfx.approve();
+        const st = getDevMsgStatus(nextStatus);
+        showToast(`${st.icon} 상태를 '${st.label}'(으)로 바꿨어요!`);
+        render();
+        break;
+      }
+
+      case "admin-mail-reply-save": {
+        const mid = btn.dataset.mid;
+        const msg = (state.devMessages || []).find(m => m.id === mid);
+        if (!msg) break;
+        const replyInp = document.getElementById(`dq-admin-reply-${mid}`);
+        const val = (replyInp ? replyInp.value : "").trim();
+        msg.reply = val;
+        msg.updatedAt = todayStr();
+        msg.parentUnread = false;
+        msg.childUnread = Boolean(val);
+        saveState();
+        sfx.approve();
+        showToast(val ? "💌 개발자 답장을 저장했어요! 아이 우체통에 알림이 뜹니다" : "답장을 비웠어요");
+        render();
+        break;
+      }
+
+      case "admin-mail-del": {
+        const mid = btn.dataset.mid;
+        if (!window.confirm("이 아이디어 요청을 삭제할까요?")) break;
+        state.devMessages = (state.devMessages || []).filter(m => m.id !== mid);
+        saveState();
+        sfx.tap();
+        showToast("🗑️ 아이디어 요청을 삭제했어요");
+        render();
+        break;
+      }
+
+      case "admin-mail-copy-open":
+      case "admin-mail-copy-all": {
+        const onlyOpen = act === "admin-mail-copy-open";
+        const md = buildMailboxMarkdown(onlyOpen);
+        ui.adminMailCopyText = md;
+        ui.adminMailCopyMode = "preview";
+        sfx.tap();
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(md)
+            .then(() => showToast(onlyOpen ? "📋 미완료 아이디어 목록을 복사했어요!" : "📋 전체 아이디어 목록을 복사했어요!"))
+            .catch(() => showToast("아래 상자를 길게 눌러 복사하세요"));
+        } else {
+          showToast("아래 상자를 길게 눌러 복사하세요");
+        }
+        render();
+        break;
+      }
+
+      case "admin-mail-copy-close":
+        ui.adminMailCopyMode = "none";
+        render();
+        break;
+    }
+  });
+
+  /* ---- Keep Developer Mailbox Draft Synced on Input ---- */
+  document.addEventListener("input", ev => {
+    if (ev.target && ev.target.id === "dq-mail-input") {
+      ui.mailboxDraftText = ev.target.value;
     }
   });
 
@@ -5199,8 +6188,24 @@
     });
   });
 
-  /* ---- Keyboard shortcut for PIN pad & Math Gate on desktop/iPad keyboard ---- */
+  /* ---- Keyboard shortcut for PIN pad, Math Gate & Mailbox on desktop/iPad keyboard ---- */
   document.addEventListener("keydown", ev => {
+    if (ui.mailboxOpen) {
+      if (ev.key === "Escape") {
+        const ta = document.getElementById("dq-mail-input");
+        if (ta) ui.mailboxDraftText = ta.value;
+        ui.mailboxOpen = false;
+        ui.mailboxJustSeenIds = [];
+        render();
+        return;
+      }
+      if ((ev.metaKey || ev.ctrlKey) && ev.key === "Enter" && document.activeElement?.id === "dq-mail-input") {
+        ev.preventDefault();
+        const sendBtn = document.querySelector('[data-act="mail-submit"]');
+        if (sendBtn) sendBtn.click();
+        return;
+      }
+    }
     if (ui.reviewGate && ui.reviewGate.mode === "math") {
       if (/^\d$/.test(ev.key)) {
         ev.preventDefault();
@@ -5246,7 +6251,22 @@
 
   document.addEventListener("change", ev => {
     const inp = ev.target;
-    if (!inp || inp.id !== "dq-import-file" || !inp.files || !inp.files[0]) return;
+    if (!inp) return;
+    if (inp.dataset && inp.dataset.mailCatId) {
+      const mid = inp.dataset.mailCatId;
+      const msg = (state.devMessages || []).find(m => m.id === mid);
+      if (msg && VALID_DEV_CAT_IDS.has(inp.value)) {
+        msg.category = inp.value;
+        msg.updatedAt = todayStr();
+        saveState();
+        sfx.tap();
+        const cat = getDevMsgCategory(inp.value);
+        showToast(`${cat.icon} 태그를 '${cat.label}'(으)로 바꿨어요`);
+        render();
+      }
+      return;
+    }
+    if (inp.id !== "dq-import-file" || !inp.files || !inp.files[0]) return;
     const reader = new FileReader();
     reader.onload = () => applyImportedBackup(reader.result);
     reader.onerror = () => showToast("⚠️ 파일을 읽지 못했어요");
