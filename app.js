@@ -215,9 +215,9 @@
       unit: "파츠",
       metric: s => (Array.isArray(s.fossilParts) ? s.fossilParts.length : 0),
       tiers: [
-        { id: "fossil_3", icon: "🦴", title: "초보 화석 발굴가", desc: "화석 파츠 3개 발굴하기", reward: 25, target: 3 },
-        { id: "fossil_9", icon: "⛏️", title: "공룡 고생물학자", desc: "화석 파츠 9개 발굴하기", reward: 60, target: 9 },
-        { id: "fossil_18", icon: "🏛️", title: "박물관 대관장!", desc: "18개 화석 파츠를 모두 복원하기", reward: 180, target: 18 }
+        { id: "fossil_3", icon: "🦴", title: "초보 화석 발굴가", desc: "화석 파츠 5개 발굴하기", reward: 30, target: 5 },
+        { id: "fossil_9", icon: "⛏️", title: "공룡 고생물학자", desc: "화석 파츠 15개 발굴하기", reward: 80, target: 15 },
+        { id: "fossil_18", icon: "🏛️", title: "박물관 대관장!", desc: "30개 화석 파츠를 모두 복원하기", reward: 220, target: 30 }
       ]
     }
   ];
@@ -3348,7 +3348,7 @@
     const fossilOn = isFossilEnabled();
     const bossOn = isBossRaidEnabled();
     const tickets = Number(state.digTickets) || 0;
-    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 18;
+    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 30;
     const unlockedDinos = DINOS.filter(d => isDinoUnlocked(d.id));
     const hasAnyVar = getUnlockedVariantCount() > 0;
     const hasCustomPos = hasCustomParkPositions();
@@ -3515,7 +3515,7 @@
 
   function renderParkMuseumView(ownedSet, completedCount) {
     const fossils = PARK ? PARK.FOSSILS : [];
-    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 18;
+    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 30;
     const pct = totalParts > 0 ? Math.round((ownedSet.size / totalParts) * 100) : 0;
     const tickets = Number(state.digTickets) || 0;
     const claimedSet = new Set(state.completedFossilRewards || []);
@@ -3528,7 +3528,7 @@
             <span class="dq-boss-trophy-pill">완성 전시 ${completedCount} / ${fossils.length}</span>
           </div>
           <div style="font-size:12.5px;color:var(--tx2);font-weight:700;margin-top:4px">
-            화석 발굴장에서 머리·몸통·꼬리 파츠를 캐서 6종의 거대 공룡 화석을 조립해 보세요!
+            화석 발굴장에서 머리·몸통·팔·다리·꼬리(날개) 5개 파츠를 캐서 6종의 거대 공룡 화석을 조립해 보세요!
           </div>
           <div class="dq-bar" style="height:8px;margin-top:9px;max-width:440px">
             <div class="dq-bar-fill gold" style="width:${pct}%"></div>
@@ -3608,7 +3608,7 @@
     const fossilOn = isFossilEnabled();
     const ownedSet = new Set(state.fossilParts || []);
     const fossils = PARK ? PARK.FOSSILS : [];
-    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 18;
+    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 30;
     const completedCount = fossils.filter(f => f.parts.every(p => ownedSet.has(`${f.id}:${p.key}`))).length;
     const claimableMuseumCount = getClaimableFossilCount();
     const tickets = Number(state.digTickets) || 0;
@@ -3652,19 +3652,20 @@
 
     let body = "";
     if (dig.finished) {
+      const exhibitTotal = fossil ? fossil.parts.length : 5;
       const exhibitFoundCnt = fossil ? fossil.parts.filter(p => ownedSet.has(`${fossil.id}:${p.key}`)).length : 0;
-      const exhibitDone = fossil && exhibitFoundCnt === fossil.parts.length;
+      const exhibitDone = fossil && exhibitFoundCnt === exhibitTotal;
       body = `
         <div class="dq-dig-result">
           ${dig.isAmberBonus ? `
             <div style="font-size:66px;margin:8px 0">💎</div>
             <h2 style="margin:0 0 6px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:26px;color:var(--gold-hi)">고대 황금 호박 보석 발굴!!</h2>
             <div style="font-size:13.5px;color:var(--tx2);margin-bottom:14px">
-              모든 18종 화석을 완성해서 희귀 호박 보너스 <b>+15 ${esc(state.settings.currencyName)}</b>을 얻었어요!
+              모든 ${PARK.ALL_PART_KEYS.length}개 화석 파츠를 완성해서 희귀 호박 보너스 <b>+15 ${esc(state.settings.currencyName)}</b>을 얻었어요!
             </div>
           ` : `
             <span class="dq-boss-trophy-pill" style="font-size:12.5px;padding:4px 12px">
-              ${exhibitDone ? "🏆 화석 3파츠 조립 완성!!" : `🦴 새 화석 파츠 발견! (${exhibitFoundCnt}/3)`}
+              ${exhibitDone ? `🏆 화석 ${exhibitTotal}파츠 조립 완성!!` : `🦴 새 화석 파츠 발견! (${exhibitFoundCnt}/${exhibitTotal})`}
             </span>
             <div class="dq-dig-reveal-box">
               ${PARK.renderFossilSkeletonSVG(fossil, ownedSet, { highlightPart: dig.targetPart.partKey })}
@@ -3677,8 +3678,8 @@
             </div>
             <div style="font-size:12.5px;color:var(--tx2);background:rgba(9,20,18,.6);padding:10px 12px;border-radius:12px;margin-bottom:14px">
               ${exhibitDone
-                ? `대박!! ${esc(fossil.name)}의 3개 파츠를 모두 모았어요! 박물관에서 완성 보상을 받아보세요! 🎉`
-                : `박물관 전시대에 자동으로 조립되었어요! 남은 파츠 ${3 - exhibitFoundCnt}개를 더 찾아보세요.`}
+                ? `대박!! ${esc(fossil.name)}의 ${exhibitTotal}개 파츠를 모두 모았어요! 박물관에서 완성 보상을 받아보세요! 🎉`
+                : `박물관 전시대에 자동으로 조립되었어요! 남은 파츠 ${exhibitTotal - exhibitFoundCnt}개를 더 찾아보세요.`}
             </div>
           `}
           <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
@@ -4713,7 +4714,7 @@
           <div class="dq-feature-toggle-row">
             <div>
               <b>🏛️ 화석 박물관 & ⛏️ 화석 발굴장</b>
-              <small>공룡 공원 안의 6종 18파츠 화석 조립 박물관과 올클리어 시 얻는 발굴권 미니게임</small>
+              <small>공룡 공원 안의 6종 30파츠 화석 조립 박물관과 올클리어 시 얻는 발굴권 미니게임</small>
             </div>
             <button class="dq-switch-btn ${st.enableFossil ? "on" : ""}" data-act="toggle-feature" data-feat="fossil">
               ${st.enableFossil ? "🟢 켜짐" : "🚧 준비중"}
@@ -5239,7 +5240,7 @@
         const owned = new Set(state.fossilParts || []);
         const next = PARK.ALL_PART_KEYS.find(p => !owned.has(p.partId));
         if (!next) {
-          showToast("🏛️ 이미 18개 화석 파츠를 모두 복원했어요!");
+          showToast(`🏛️ 이미 ${PARK.ALL_PART_KEYS.length}개 화석 파츠를 모두 복원했어요!`);
           break;
         }
         state.fossilParts.push(next.partId);

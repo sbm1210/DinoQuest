@@ -3709,64 +3709,120 @@ button {
   position: relative;
   z-index: 2;
   margin: 10px 0 10px;
-  padding: 10px 8px 16px;
+  padding: 10px 10px 14px;
   border-radius: 15px;
-  background: radial-gradient(circle at 50% 45%, rgba(30, 41, 59, 0.55), rgba(6, 12, 16, 0.82));
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(56, 189, 248, 0.055) 1px, transparent 1px),
+    radial-gradient(circle at 50% 45%, rgba(23, 44, 68, 0.65), rgba(6, 12, 18, 0.9));
+  background-size: 20px 20px, 20px 20px, 100% 100%;
+  border: 1px solid rgba(125, 211, 252, 0.16);
   cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.dq-museum-card.complete .dq-museum-display {
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(251, 191, 36, 0.18), transparent 65%),
+    radial-gradient(circle at 50% 50%, rgba(36, 30, 22, 0.72), rgba(8, 12, 16, 0.92));
+  background-size: 100% 100%;
+  border-color: rgba(251, 191, 36, 0.34);
 }
 .dq-museum-pedestal {
   position: absolute;
-  left: 12%;
-  right: 12%;
+  left: 10%;
+  right: 10%;
   bottom: 7px;
   height: 8px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #5c3d22, #9c6f3e, #5c3d22);
-  border: 1px solid rgba(251, 191, 36, 0.38);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
+  background: linear-gradient(90deg, #5c3d22, #a87742, #5c3d22);
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.75);
+  z-index: 1;
 }
-.dq-fossil-svg {
+.dq-fossil-stage {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  height: 144px;
-  display: block;
+  aspect-ratio: 16 / 10;
+  max-height: 176px;
+  margin: 0 auto;
+  user-select: none;
+  pointer-events: none;
 }
-.dq-fossil-svg .fs-part.owned {
-  fill: url(#fs-bone-g);
-  stroke: #f5e6c4;
+.dq-dig-reveal-box .dq-fossil-stage {
+  max-height: 214px;
 }
-.dq-fossil-svg .fs-part.owned .fs-hole {
-  fill: #111827;
-  stroke: #786240;
-  stroke-width: 1.4;
+.dq-fossil-owned-group {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  filter: drop-shadow(0 5px 8px rgba(0, 0, 0, 0.78));
 }
-.dq-fossil-svg .fs-part.missing {
-  fill: rgba(148, 163, 184, 0.05);
-  stroke: rgba(148, 163, 184, 0.34);
-  stroke-dasharray: 5 4;
+.dq-fossil-stage.complete .dq-fossil-owned-group {
+  filter:
+    drop-shadow(0 0 12px rgba(251, 191, 36, 0.36))
+    drop-shadow(0 6px 10px rgba(0, 0, 0, 0.8));
 }
-.dq-fossil-svg .fs-part.missing .fs-hole {
-  fill: none;
-  stroke: rgba(148, 163, 184, 0.25);
+.dq-fossil-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
-.dq-fossil-svg .fs-part.hi {
-  stroke: #fef08a;
-  animation: dq-pop 1.1s ease-in-out infinite;
+.dq-fossil-layer.blueprint {
+  z-index: 1;
+  filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.25));
+}
+.dq-fossil-stage.blueprint-only .dq-fossil-layer.blueprint {
+  filter: drop-shadow(0 0 9px rgba(56, 189, 248, 0.34));
+}
+.dq-fossil-layer.owned.part-body {
+  z-index: 1;
+}
+.dq-fossil-layer.owned:not(.part-body) {
+  z-index: 2;
+}
+.dq-fossil-layer.owned.hi {
+  z-index: 4;
+  animation: dq-fossil-hi-pulse 1.25s ease-in-out infinite;
+}
+@keyframes dq-fossil-hi-pulse {
+  0%, 100% {
+    filter:
+      drop-shadow(0 0 8px rgba(251, 191, 36, 0.9))
+      drop-shadow(0 0 18px rgba(253, 224, 71, 0.45))
+      brightness(1.06);
+  }
+  50% {
+    filter:
+      drop-shadow(0 0 16px rgba(251, 191, 36, 1))
+      drop-shadow(0 0 28px rgba(254, 240, 138, 0.82))
+      brightness(1.22);
+  }
 }
 .dq-fossil-parts-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
 }
 .dq-fpart-chip {
+  flex: 1 1 calc(33.333% - 6px);
+  min-width: 76px;
   text-align: center;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
-  padding: 5px 6px;
+  padding: 5px 5px;
   border-radius: 10px;
   background: rgba(9, 18, 22, 0.7);
   border: 1px solid rgba(148, 163, 184, 0.24);
   color: var(--mut);
+  white-space: nowrap;
 }
 .dq-fpart-chip.owned {
   background: rgba(251, 191, 36, 0.16);
