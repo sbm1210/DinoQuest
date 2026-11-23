@@ -4599,11 +4599,14 @@ button {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 7px;
-    max-height: 242px;
-    overflow-y: auto;
-    padding-right: 2px;
-    scrollbar-width: thin;
-    scrollbar-color: rgba(127, 163, 150, 0.35) transparent;
+  }
+  .dq-daily-quest-grid .dq-q-meta {
+    gap: 5px;
+    margin-top: 4px;
+  }
+  .dq-daily-quest-grid .dq-timer-chip {
+    padding: 3px 8px;
+    font-size: 11px;
   }
   .dq-daily-quest-grid > .dq-empty {
     grid-column: 1 / -1;
