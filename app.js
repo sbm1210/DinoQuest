@@ -2163,9 +2163,6 @@
               ${useVar && partner.variant
                 ? `<span class="dq-variant-pill" style="--v-col:${partner.variant.color}">${esc(partner.variant.badge)}</span>`
                 : `<span class="dq-rarity-tag ${partner.rarity}">${partner.rarityLabel}</span>`}
-              <button class="dq-timer-chip" style="margin-left:auto;background:rgba(251,191,36,.16);border-color:rgba(251,191,36,.48);color:var(--gold-hi)" data-act="open-wardrobe">
-                👔 꾸미기${newGearCnt > 0 ? ` (${newGearCnt})` : ""}
-              </button>
             </div>
             <div class="dq-speech">${speechHtml}</div>
           </div>
