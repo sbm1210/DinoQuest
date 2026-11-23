@@ -4377,7 +4377,7 @@
     }
 
     return `
-      <div class="dq-modal-backdrop" data-act="close-admin">
+      <div class="dq-modal-backdrop">
         <div class="dq-modal wide">
           <div class="dq-modal-head">
             <h3>🔐 부모님 관리자 모드</h3>
