@@ -45,6 +45,49 @@
   function isDinoUsingVariant(did, s = state) {
     return Boolean(s.activeVariants && s.activeVariants[did]) && isVariantUnlocked(did, s);
   }
+  const GEAR_SLOT_KEYS = ["head", "face", "back", "hand", "aura", "stage"];
+  function emptyGearSlots() {
+    return { head: null, face: null, back: null, hand: null, aura: null, stage: null };
+  }
+  function normalizeGearObj(obj) {
+    const out = emptyGearSlots();
+    if (obj && typeof obj === "object") {
+      for (const sl of GEAR_SLOT_KEYS) {
+        if (typeof obj[sl] === "string" && obj[sl]) out[sl] = obj[sl];
+      }
+      if (out.back === "back_shield") {
+        if (!out.hand) out.hand = "back_shield";
+        out.back = null;
+      }
+      if (GEAR) {
+        for (const sl of GEAR_SLOT_KEYS) {
+          if (out[sl] && !GEAR.getItem(out[sl])) out[sl] = null;
+        }
+      }
+    }
+    return out;
+  }
+  function getDinoGear(did, s = state) {
+    if (!did) return emptyGearSlots();
+    const map = s && s.dinoGear && typeof s.dinoGear === "object" ? s.dinoGear : null;
+    if (map && map[did] && typeof map[did] === "object") return map[did];
+    if (s && s.partnerDino === did && s.equippedGear && typeof s.equippedGear === "object") {
+      return s.equippedGear;
+    }
+    return emptyGearSlots();
+  }
+  function ensureDinoGear(did, s = state) {
+    if (!s.dinoGear || typeof s.dinoGear !== "object") s.dinoGear = {};
+    if (!s.dinoGear[did] || typeof s.dinoGear[did] !== "object") {
+      s.dinoGear[did] = emptyGearSlots();
+    }
+    return s.dinoGear[did];
+  }
+  function getWardrobeDinoId() {
+    if (ui.wardrobeDinoId && isDinoUnlocked(ui.wardrobeDinoId)) return ui.wardrobeDinoId;
+    return state.partnerDino;
+  }
+
   function getDinoAffinity(did, s = state) {
     return Math.max(0, Number(s.dinoAffinity?.[did]) || 0);
   }
@@ -426,6 +469,9 @@
       activeVariants: {},
       partnerDino: "trex",
       equippedGear: { head: "hat_explorer", face: null, back: null, hand: null, aura: null, stage: null },
+      dinoGear: {
+        trex: { head: "hat_explorer", face: null, back: null, hand: null, aura: null, stage: null }
+      },
       bonusGear: [],
       seenGear: ["hat_explorer"],
       templates: [
@@ -514,21 +560,25 @@
     if (!Array.isArray(s.claimedAchievements)) s.claimedAchievements = [];
     if (!Array.isArray(s.redeemHistory)) s.redeemHistory = [];
     if (!Array.isArray(s.coinHistory)) s.coinHistory = [];
-    if (!s.equippedGear || typeof s.equippedGear !== "object") {
-      s.equippedGear = { head: "hat_explorer", face: null, back: null, hand: null, aura: null, stage: null };
-    }
-    if (s.equippedGear.hand === undefined) s.equippedGear.hand = null;
-    if (s.equippedGear.stage === undefined) s.equippedGear.stage = null;
-    // Migrate back_shield from back slot to hand slot cleanly
-    if (s.equippedGear.back === "back_shield") {
-      if (!s.equippedGear.hand) s.equippedGear.hand = "back_shield";
-      s.equippedGear.back = null;
-    }
-    if (GEAR) {
-      for (const sl of ["head", "face", "back", "hand", "aura", "stage"]) {
-        if (s.equippedGear[sl] && !GEAR.getItem(s.equippedGear[sl])) s.equippedGear[sl] = null;
+    s.equippedGear = normalizeGearObj(
+      s.equippedGear && typeof s.equippedGear === "object"
+        ? s.equippedGear
+        : { head: "hat_explorer", face: null, back: null, hand: null, aura: null, stage: null }
+    );
+    if (!s.dinoGear || typeof s.dinoGear !== "object") {
+      s.dinoGear = {};
+      s.dinoGear[s.partnerDino || "trex"] = { ...s.equippedGear };
+    } else {
+      const nextMap = {};
+      for (const [did, g] of Object.entries(s.dinoGear)) {
+        nextMap[did] = normalizeGearObj(g);
       }
+      if (!nextMap[s.partnerDino || "trex"]) {
+        nextMap[s.partnerDino || "trex"] = { ...s.equippedGear };
+      }
+      s.dinoGear = nextMap;
     }
+    s.equippedGear = { ...s.dinoGear[s.partnerDino || "trex"] };
     if (!Array.isArray(s.bonusGear)) s.bonusGear = [];
     if (GEAR) s.bonusGear = s.bonusGear.filter(id => Boolean(GEAR.getItem(id)));
     if (!Array.isArray(s.seenGear)) s.seenGear = ["hat_explorer"];
@@ -603,17 +653,20 @@
     if (!GEAR || DEV_UNLOCK_ALL) return s;
     const streak = computeStreak(s);
     const unlockedSet = new Set(GEAR.getUnlockedGearIds(s, streak));
-    for (const sl of ["head", "face", "back", "hand", "aura", "stage"]) {
-      if (s.equippedGear[sl] && !unlockedSet.has(s.equippedGear[sl])) {
-        s.equippedGear[sl] = null;
-      }
-    }
     const seenSet = new Set((s.seenGear || []).filter(id => unlockedSet.has(id)));
-    for (const sl of ["head", "face", "back", "hand", "aura", "stage"]) {
-      if (s.equippedGear[sl] && unlockedSet.has(s.equippedGear[sl])) {
-        seenSet.add(s.equippedGear[sl]);
+    if (!s.dinoGear || typeof s.dinoGear !== "object") s.dinoGear = {};
+    for (const did of Object.keys(s.dinoGear)) {
+      const g = s.dinoGear[did];
+      if (!g || typeof g !== "object") continue;
+      for (const sl of GEAR_SLOT_KEYS) {
+        if (g[sl] && !unlockedSet.has(g[sl])) {
+          g[sl] = null;
+        } else if (g[sl]) {
+          seenSet.add(g[sl]);
+        }
       }
     }
+    s.equippedGear = { ...getDinoGear(s.partnerDino, s) };
     s.seenGear = [...seenSet];
     return s;
   }
@@ -660,6 +713,7 @@
     mailboxFilter: "all",    // all | active | done
     mailboxJustSeenIds: [],  // Newly updated message IDs highlighted during current open
     gearSlot: "all",         // all | head | face | back | aura | stage
+    wardrobeDinoId: null,    // Currently dressed dinosaur in wardrobe (defaults to partnerDino)
     collectionFilter: "all", // all | base | variant
     showCompletedAch: false,
     selectedDate: todayStr(),
@@ -2152,7 +2206,7 @@
       <section class="dq-card dq-partner-card">
         <div class="dq-partner-top">
           <div class="dq-partner-avatar ${avatarCls}" data-act="pet-dino" title="눌러서 공룡 포효 듣기!">
-            ${renderDinoArt(partner, { unlocked: true, equipped: state.equippedGear, mood: ui.dinoMood, variant: useVar })}
+            ${renderDinoArt(partner, { unlocked: true, equipped: getDinoGear(partner.id), mood: ui.dinoMood, variant: useVar })}
             <span class="dq-avatar-sound-badge" aria-hidden="true">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             </span>
@@ -2438,7 +2492,7 @@
           <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg}">
             <div class="dq-arena-fighter hero">
               <div class="dq-arena-hero-art">
-                ${renderDinoArt(partner, { size: 104, equipped: state.equippedGear, mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
+                ${renderDinoArt(partner, { size: 104, equipped: getDinoGear(partner.id), mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
               </div>
               <span class="dq-fighter-tag hero">${esc(getDinoDisplayNick(partner, isDinoUsingVariant(partner.id)))}</span>
             </div>
@@ -2753,7 +2807,8 @@
   }
 
   function renderWardrobeView() {
-    const partner = getDino(state.partnerDino);
+    const partner = getDino(getWardrobeDinoId());
+    const curGear = getDinoGear(partner.id);
     const varUnlocked = isVariantUnlocked(partner.id);
     const useVar = isDinoUsingVariant(partner.id);
     const aff = getDinoAffinity(partner.id);
@@ -2765,7 +2820,7 @@
     const slotItems = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
     const slotOwnedCount = slotItems.filter(it => unlockedIds.has(it.id)).length;
     const filtered = ownedOnly ? slotItems.filter(it => unlockedIds.has(it.id)) : slotItems;
-    const equippedCount = Object.values(state.equippedGear || {}).filter(Boolean).length;
+    const equippedCount = Object.values(curGear || {}).filter(Boolean).length;
 
     return `
       <div class="dq-wardrobe-layout">
@@ -2780,7 +2835,7 @@
             공룡을 누르면 입을 벌리고 실제 울음소리로 포효해요!
           </div>
           <div class="dq-wardrobe-preview" data-act="roar-dino" data-did="${partner.id}">
-            ${renderDinoArt(partner, { unlocked: true, equipped: state.equippedGear, mood: ui.dinoMood, variant: useVar })}
+            ${renderDinoArt(partner, { unlocked: true, equipped: curGear, mood: ui.dinoMood, variant: useVar })}
           </div>
 
           ${partner.variant ? `
@@ -2810,7 +2865,7 @@
 
           <div class="dq-wardrobe-slots">
             ${GEAR.SLOTS.map(sl => {
-              const eqId = state.equippedGear?.[sl.id];
+              const eqId = curGear?.[sl.id];
               const eqItem = eqId ? GEAR.getItem(eqId) : null;
               return `
                 <div class="dq-slot-chip ${eqItem ? "filled" : ""}">
@@ -2883,7 +2938,7 @@
             : `<div class="dq-gear-grid">
                 ${filtered.map(it => {
                   const unlocked = unlockedIds.has(it.id);
-                  const equipped = state.equippedGear?.[it.slot] === it.id;
+                  const equipped = curGear?.[it.slot] === it.id;
                   const isNew = unlocked && !equipped && newGearSet.has(it.id);
                   const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
                   const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
@@ -2987,7 +3042,7 @@
                     ${isPartner ? `<span class="dq-partner-crown">⭐ 파트너</span>` : ""}
                     ${isVarCard ? `<span class="dq-var-corner">${unlocked ? "✨ 변이" : "🔒 변이"}</span>` : ""}
                     <div class="dq-dino-art">
-                      ${renderDinoArt(d, { unlocked, equipped: isPartner ? state.equippedGear : {}, variant: isVarCard })}
+                      ${renderDinoArt(d, { unlocked, equipped: unlocked ? getDinoGear(d.id) : {}, variant: isVarCard })}
                     </div>
                     ${isVarCard && d.variant
                       ? `<span class="dq-variant-pill" style="--v-col:${d.variant.color}">${unlocked ? esc(d.variant.badge) : "✨ 스페셜 변이"}</span>`
@@ -3257,9 +3312,9 @@
       }
       if (state.partnerDino === d.id) {
         base.push(`나는 ${childName}의 든든한 파트너 공룡이야! ⭐`);
-        if (Object.values(state.equippedGear || {}).some(Boolean)) {
-          base.push("내 장비 어때? 멋있게 꾸며줘서 고마워! 👑");
-        }
+      }
+      if (Object.values(getDinoGear(d.id)).some(Boolean)) {
+        base.push("내 장비 어때? 멋있게 꾸며줘서 고마워! 👑");
       }
       const spot = getParkDinoSpot(d.id);
       if (spot.y > 66 && spot.x > 64) {
@@ -3610,7 +3665,7 @@
               ${isPartner ? `<span class="dq-park-star">⭐</span>` : ""}
               <span class="dq-park-select-ring" aria-hidden="true"></span>
               <div class="dq-park-dino-inner ${spot.flip ? "flip" : ""}">
-                ${renderDinoArt(d, { unlocked: true, equipped: isPartner ? state.equippedGear : {}, showStage: false, variant: useVar, mood: hasBubble ? "jump" : "idle" })}
+                ${renderDinoArt(d, { unlocked: true, equipped: getDinoGear(d.id), showStage: false, variant: useVar, mood: hasBubble ? "jump" : "idle" })}
               </div>
               <span class="dq-park-name-tag">${useVar ? "✨" : ""}${esc(getDinoDisplayNick(d, useVar))}</span>
             </div>
@@ -4131,7 +4186,7 @@
               ? `<span class="dq-variant-pill" style="--v-col:${d.variant.color};font-size:12.5px;padding:3px 12px">✨ ${esc(d.variant.badge)}</span>`
               : `<span class="dq-rarity-tag ${d.rarity}" style="font-size:12.5px;padding:3px 12px">${d.rarityLabel}</span>`}
             <div class="dq-dino-portrait-lg" data-act="roar-dino" data-did="${d.id}" title="눌러서 울음소리 듣기">
-              ${renderDinoArt(d, { unlocked: true, equipped: state.partnerDino === d.id ? state.equippedGear : {}, mood: ui.dinoMood, variant: showVar })}
+              ${renderDinoArt(d, { unlocked: true, equipped: getDinoGear(d.id), mood: ui.dinoMood, variant: showVar })}
             </div>
             ${d.variant ? `
               <div class="dq-variant-switcher" style="max-width:300px;margin:0 auto 10px">
@@ -4208,7 +4263,7 @@
 
             <div class="dq-feed-hero">
               <div class="dq-feed-avatar">
-                ${renderDinoArt(d, { unlocked: true, equipped: state.partnerDino === d.id ? state.equippedGear : {}, mood: ui.dinoMood, variant: useVar })}
+                ${renderDinoArt(d, { unlocked: true, equipped: getDinoGear(d.id), mood: ui.dinoMood, variant: useVar })}
               </div>
               <div class="dq-feed-meta">
                 <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
@@ -5218,9 +5273,11 @@
         const item = GEAR ? GEAR.getItem(gid) : null;
         if (!item) break;
         if (!GEAR.isItemUnlocked(item, state, computeStreak(state))) break;
-        if (!state.equippedGear) state.equippedGear = { head: null, face: null, back: null, hand: null, aura: null, stage: null };
-        const wasOn = state.equippedGear[item.slot] === gid;
-        state.equippedGear[item.slot] = wasOn ? null : gid;
+        const targetDid = getWardrobeDinoId();
+        const gear = ensureDinoGear(targetDid);
+        const wasOn = gear[item.slot] === gid;
+        gear[item.slot] = wasOn ? null : gid;
+        if (targetDid === state.partnerDino) state.equippedGear = { ...gear };
         if (!wasOn) markSingleGearSeen(gid);
         saveState();
         if (wasOn) {
@@ -5235,13 +5292,18 @@
         break;
       }
 
-      case "clear-gear":
+      case "clear-gear": {
         sfx.tap();
-        state.equippedGear = { head: null, face: null, back: null, hand: null, aura: null, stage: null };
+        const targetDid = getWardrobeDinoId();
+        const empty = emptyGearSlots();
+        ensureDinoGear(targetDid);
+        state.dinoGear[targetDid] = empty;
+        if (targetDid === state.partnerDino) state.equippedGear = { ...empty };
         saveState();
         showToast("모든 장비를 벗었어요");
         render();
         break;
+      }
 
       case "toggle-completed-ach":
         sfx.tap();
@@ -5782,6 +5844,8 @@
         const did = btn.dataset.did;
         const useVar = btn.dataset.variant === "1" && isVariantUnlocked(did);
         state.partnerDino = did;
+        ui.wardrobeDinoId = did;
+        state.equippedGear = { ...ensureDinoGear(did) };
         if (!state.activeVariants || typeof state.activeVariants !== "object") state.activeVariants = {};
         state.activeVariants[did] = useVar;
         saveState();
@@ -5794,8 +5858,7 @@
       case "quick-switch-dino": {
         const did = btn.dataset.did;
         if (!isDinoUnlocked(did)) break;
-        state.partnerDino = did;
-        saveState();
+        ui.wardrobeDinoId = did;
         sfx.tap();
         render();
         break;
