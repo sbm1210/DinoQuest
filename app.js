@@ -2929,6 +2929,7 @@
             </button>
           </div>
 
+          <div class="dq-scroll-body dq-gear-scroll">
           ${filtered.length === 0
             ? `<div class="dq-empty" style="padding:32px 16px">
                 <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:6px">🔒 이 부위에는 아직 보유한 장비가 없어요</div>
@@ -2967,6 +2968,7 @@
                   `;
                 }).join("")}
               </div>`}
+          </div>
         </section>
       </div>
     `;
@@ -3028,7 +3030,8 @@
                   <button class="dq-day-pill ${cf === "variant" ? "on" : ""}" data-act="set-collection-filter" data-val="variant">✨ 변이 (${varCnt}/12)</button>
                 </div>
               </div>
-              <div class="dq-dino-grid">
+              <div class="dq-scroll-body dq-collection-scroll">
+                <div class="dq-dino-grid">
               ${entries.map(({ dino: d, isVarCard }) => {
                 const baseUnlocked = isDinoUnlocked(d.id);
                 const unlocked = isVarCard ? isVariantUnlocked(d.id) : baseUnlocked;
@@ -3065,6 +3068,7 @@
                   </div>
                 `;
               }).join("")}
+                </div>
               </div>
             </div>
           `;
@@ -3754,6 +3758,7 @@
         </div>
       </div>
 
+      <div class="dq-scroll-body dq-museum-scroll">
       <div class="dq-museum-grid">
         ${fossils.map(f => {
           const foundParts = f.parts.filter(p => ownedSet.has(`${f.id}:${p.key}`));
@@ -3808,6 +3813,7 @@
             </article>
           `;
         }).join("")}
+      </div>
       </div>
       </div>
     `;
@@ -5143,10 +5149,10 @@
   function render() {
     const root = document.getElementById("root");
     if (!root) return;
-    const prevGearScroll = document.querySelector(".dq-wardrobe-catalog .dq-gear-grid")?.scrollTop || 0;
+    const prevGearScroll = document.querySelector(".dq-gear-scroll")?.scrollTop || 0;
     const prevStageScroll = document.querySelector(".dq-wardrobe-stage")?.scrollTop || 0;
-    const prevCollectionScroll = document.querySelector(".dq-collection-pane .dq-dino-grid")?.scrollTop || 0;
-    const prevMuseumScroll = document.querySelector(".dq-museum-pane .dq-museum-grid")?.scrollTop || 0;
+    const prevCollectionScroll = document.querySelector(".dq-collection-scroll")?.scrollTop || 0;
+    const prevMuseumScroll = document.querySelector(".dq-museum-scroll")?.scrollTop || 0;
     renderCache = {};
     let mainView = "";
     if (ui.tab === "quests") mainView = renderQuestsTab();
@@ -5173,7 +5179,7 @@
       ${renderDevMailboxModal()}
     `;
     if (prevGearScroll > 0) {
-      const gg = document.querySelector(".dq-wardrobe-catalog .dq-gear-grid");
+      const gg = document.querySelector(".dq-gear-scroll");
       if (gg) gg.scrollTop = prevGearScroll;
     }
     if (prevStageScroll > 0) {
@@ -5181,11 +5187,11 @@
       if (ws) ws.scrollTop = prevStageScroll;
     }
     if (prevCollectionScroll > 0) {
-      const dg = document.querySelector(".dq-collection-pane .dq-dino-grid");
+      const dg = document.querySelector(".dq-collection-scroll");
       if (dg) dg.scrollTop = prevCollectionScroll;
     }
     if (prevMuseumScroll > 0) {
-      const mg = document.querySelector(".dq-museum-pane .dq-museum-grid");
+      const mg = document.querySelector(".dq-museum-scroll");
       if (mg) mg.scrollTop = prevMuseumScroll;
     }
     renderToast();
