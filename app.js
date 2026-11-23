@@ -2844,7 +2844,7 @@
           ` : ""}
         </section>
 
-        <section class="dq-card">
+        <section class="dq-card dq-wardrobe-catalog">
           <div class="dq-card-title" style="flex-wrap:wrap">
             <h2>👔 장비 옷장 (${unlockedIds.size} / ${GEAR.ITEMS.length} 해금)</h2>
             <div class="dq-day-pills">
@@ -2960,19 +2960,20 @@
             for (const d of DINOS) if (d.variant) entries.push({ dino: d, isVarCard: true });
           }
           return `
-            <div class="dq-ach-toolbar">
-              <div class="dq-ach-summary">
-                <span>🦕 공룡 도감</span>
-                <b>총 ${baseCnt + varCnt} / ${DINOS.length * 2}종</b>
-                <small>기본 ${baseCnt}/${DINOS.length} · ✨ 스페셜 변이 ${varCnt}/${DINOS.length} (친밀도 ${VARIANT_AFFINITY_NEED} 또는 12종 완성 후 알 부화로 해금!)</small>
+            <div class="dq-collection-pane">
+              <div class="dq-ach-toolbar">
+                <div class="dq-ach-summary">
+                  <span>🦕 공룡 도감</span>
+                  <b>총 ${baseCnt + varCnt} / ${DINOS.length * 2}종</b>
+                  <small>기본 ${baseCnt}/${DINOS.length} · ✨ 스페셜 변이 ${varCnt}/${DINOS.length} (친밀도 ${VARIANT_AFFINITY_NEED} 또는 12종 완성 후 알 부화로 해금!)</small>
+                </div>
+                <div class="dq-day-pills">
+                  <button class="dq-day-pill ${cf === "all" ? "on" : ""}" data-act="set-collection-filter" data-val="all">전체 (24)</button>
+                  <button class="dq-day-pill ${cf === "base" ? "on" : ""}" data-act="set-collection-filter" data-val="base">🦖 기본 (${baseCnt}/12)</button>
+                  <button class="dq-day-pill ${cf === "variant" ? "on" : ""}" data-act="set-collection-filter" data-val="variant">✨ 변이 (${varCnt}/12)</button>
+                </div>
               </div>
-              <div class="dq-day-pills">
-                <button class="dq-day-pill ${cf === "all" ? "on" : ""}" data-act="set-collection-filter" data-val="all">전체 (24)</button>
-                <button class="dq-day-pill ${cf === "base" ? "on" : ""}" data-act="set-collection-filter" data-val="base">🦖 기본 (${baseCnt}/12)</button>
-                <button class="dq-day-pill ${cf === "variant" ? "on" : ""}" data-act="set-collection-filter" data-val="variant">✨ 변이 (${varCnt}/12)</button>
-              </div>
-            </div>
-            <div class="dq-dino-grid">
+              <div class="dq-dino-grid">
               ${entries.map(({ dino: d, isVarCard }) => {
                 const baseUnlocked = isDinoUnlocked(d.id);
                 const unlocked = isVarCard ? isVariantUnlocked(d.id) : baseUnlocked;
@@ -3009,6 +3010,7 @@
                   </div>
                 `;
               }).join("")}
+              </div>
             </div>
           `;
         })()}
@@ -5085,6 +5087,9 @@
   function render() {
     const root = document.getElementById("root");
     if (!root) return;
+    const prevGearScroll = document.querySelector(".dq-wardrobe-catalog .dq-gear-grid")?.scrollTop || 0;
+    const prevStageScroll = document.querySelector(".dq-wardrobe-stage")?.scrollTop || 0;
+    const prevCollectionScroll = document.querySelector(".dq-collection-pane .dq-dino-grid")?.scrollTop || 0;
     renderCache = {};
     let mainView = "";
     if (ui.tab === "quests") mainView = renderQuestsTab();
@@ -5110,6 +5115,18 @@
       ${renderDigModal()}
       ${renderDevMailboxModal()}
     `;
+    if (prevGearScroll > 0) {
+      const gg = document.querySelector(".dq-wardrobe-catalog .dq-gear-grid");
+      if (gg) gg.scrollTop = prevGearScroll;
+    }
+    if (prevStageScroll > 0) {
+      const ws = document.querySelector(".dq-wardrobe-stage");
+      if (ws) ws.scrollTop = prevStageScroll;
+    }
+    if (prevCollectionScroll > 0) {
+      const dg = document.querySelector(".dq-collection-pane .dq-dino-grid");
+      if (dg) dg.scrollTop = prevCollectionScroll;
+    }
     renderToast();
     syncBossBattleFX();
   }

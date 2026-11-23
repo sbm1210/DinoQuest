@@ -591,12 +591,6 @@ button {
   gap: 16px;
   align-items: start;
 }
-@media (min-width: 860px) {
-  .dq-wardrobe-layout {
-    grid-template-columns: 360px 1fr;
-    gap: 18px;
-  }
-}
 .dq-wardrobe-stage {
   background:
     radial-gradient(280px 240px at 50% 45%, rgba(52, 211, 153, 0.2), transparent 72%),
@@ -617,6 +611,61 @@ button {
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.72);
+}
+@media (min-width: 860px) {
+  .dq-wardrobe-layout {
+    grid-template-columns: 356px 1fr;
+    gap: 16px;
+    align-items: stretch;
+    height: calc(100dvh - 134px);
+    min-height: 460px;
+  }
+  .dq-wardrobe-stage {
+    padding: 14px 16px;
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 163, 150, 0.35) transparent;
+  }
+  .dq-wardrobe-preview {
+    width: 212px;
+    height: 212px;
+    margin: 8px auto 10px;
+  }
+  .dq-wardrobe-catalog {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+  }
+  .dq-wardrobe-catalog .dq-gear-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+    padding: 2px 4px 8px 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 163, 150, 0.4) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dq-collection-pane {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 134px);
+    min-height: 440px;
+    overflow: hidden;
+  }
+  .dq-collection-pane .dq-dino-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+    padding: 2px 4px 12px 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 163, 150, 0.4) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 .dq-wardrobe-slots {
   display: grid;
