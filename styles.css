@@ -4653,13 +4653,18 @@ button {
   }
 }
 
+.dq-day-header {
+  min-height: 34px;
+}
 .dq-day-header-right {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 32px;
 }
 .dq-wait-inline-btn {
-  padding: 5px 11px !important;
+  height: 32px;
+  padding: 0 11px !important;
   font-size: 12px !important;
   animation: dq-glow-amber 1.8s infinite;
 }
