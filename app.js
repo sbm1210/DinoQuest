@@ -2524,16 +2524,25 @@
       : `<span class="dq-day-tag past">지난 기록</span>`;
 
     let chestHtml = "";
+    const progressBarHtml = `
+      <div class="dq-bar" style="height:7px;margin-top:5px">
+        <div class="dq-bar-fill ${sum.allClaimed || sum.allCleared ? "gold" : ""}" style="width:${pct}%"></div>
+      </div>
+    `;
     if (sum.allCleared) {
       const paid = state.dayLogs[dateStr]?.allClearBonusPaid ?? 0;
       const isParentClear = sum.parentApprovedClear;
       chestHtml = `
         <div class="dq-chest-bar opened">
-          <div class="dq-chest-left">
-            ${chestSVG(true, 42)}
-            <div class="dq-chest-txt">
-              <strong>${isParentClear ? "✨ 부모님 올클리어 인정 완료!" : "🎉 오늘의 올클리어 보물상자 완료!"}</strong>
+          <div class="dq-chest-left" style="flex:1;min-width:0">
+            ${chestSVG(true, 38)}
+            <div class="dq-chest-txt" style="flex:1;min-width:0">
+              <div class="dq-chest-head-row">
+                <strong>${isParentClear ? "✨ 부모님 올클리어 인정 완료!" : "🎉 오늘의 올클리어 보물상자 완료!"}</strong>
+                <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · ${pct}%</b>
+              </div>
               <span>${paid > 0 ? `보너스 +${paid} ${esc(state.settings.currencyName)} & ` : ""}연속 탐험 +1일 & 공룡알 부화 게이지 획득!</span>
+              ${progressBarHtml}
             </div>
           </div>
           <span class="dq-done-stamp">✨ 달성!</span>
@@ -2543,14 +2552,18 @@
       if (sum.allClaimed) {
         chestHtml = `
           <div class="dq-chest-bar ready">
-            <div class="dq-chest-left">
-              ${chestSVG(false, 44)}
-              <div class="dq-chest-txt">
-                <strong>🎁 모든 퀘스트 완료! 보물상자가 열려요!</strong>
-                <span>보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 공룡알 부화 +1</span>
+            <div class="dq-chest-left" style="flex:1;min-width:0">
+              ${chestSVG(false, 40)}
+              <div class="dq-chest-txt" style="flex:1;min-width:0">
+                <div class="dq-chest-head-row">
+                  <strong>🎁 모든 퀘스트 완료! 보물상자가 열려요!</strong>
+                  <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · 100%</b>
+                </div>
+                <span>보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 공룡알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}</span>
+                ${progressBarHtml}
               </div>
             </div>
-            <button class="dq-btn dq-btn-gold pulse" data-act="claim-chest" data-date="${dateStr}">
+            <button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-chest" data-date="${dateStr}">
               🎁 보물상자 열기!
             </button>
           </div>
@@ -2558,14 +2571,17 @@
       } else {
         chestHtml = `
           <div class="dq-chest-bar">
-            <div class="dq-chest-left">
-              ${chestSVG(false, 38)}
-              <div class="dq-chest-txt">
-                <strong>일일 올클리어 보물상자</strong>
-                <span>오늘 숙제를 모두 끝내면 보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}!</span>
+            <div class="dq-chest-left" style="flex:1;min-width:0">
+              ${chestSVG(false, 36)}
+              <div class="dq-chest-txt" style="flex:1;min-width:0">
+                <div class="dq-chest-head-row">
+                  <strong>일일 올클리어 보물상자</strong>
+                  <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · ${pct}%</b>
+                </div>
+                <span>모두 끝내면 보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}!</span>
+                ${progressBarHtml}
               </div>
             </div>
-            <span style="font-size:12.5px;font-weight:800;color:var(--mut)">${sum.claimed} / ${sum.total} 완료</span>
           </div>
         `;
       }
@@ -2592,28 +2608,15 @@
             <span>${formatKoDate(dateStr)}</span>
             ${tagHtml}
           </div>
-          <div class="dq-day-progress-text">
-            ${sum.total > 0 ? `${sum.claimed} / ${sum.total} 완료 · ${pct}%` : "쉬는 날 💤"}
+          <div class="dq-day-header-right">
+            ${waitingAll.length > 0 ? `
+              <button class="dq-btn dq-btn-amber dq-btn-sm dq-wait-inline-btn" data-act="open-quick-review">
+                🔐 부모님 확인 (${waitingAll.length})
+              </button>
+            ` : ""}
+            ${sum.total === 0 ? `<div class="dq-day-progress-text">쉬는 날 💤</div>` : ""}
           </div>
         </div>
-        <div class="dq-bar" style="height:10px">
-          <div class="dq-bar-fill" style="width:${pct}%"></div>
-        </div>
-
-        ${waitingAll.length > 0 ? `
-          <div class="dq-wait-banner">
-            <div class="dq-wait-banner-txt">
-              <span style="font-size:24px">📢</span>
-              <div>
-                부모님 확인 대기 중 (${waitingAll.length}개)
-                <small>${esc(state.settings.childName)} 탐험가가 채점·확인을 기다리고 있어요!</small>
-              </div>
-            </div>
-            <button class="dq-btn dq-btn-amber dq-btn-sm" data-act="open-quick-review">
-              🔐 부모님 확인하기
-            </button>
-          </div>
-        ` : ""}
 
         ${protectHtml}
 
