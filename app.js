@@ -207,6 +207,10 @@
     return prefix + "_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2, 6);
   }
 
+  function coinIcon(size = 13) {
+    return `<span class="dq-inline-coin">${coinSVG(size)}</span>`;
+  }
+
   function esc(str) {
     return String(str ?? "")
       .replace(/&/g, "&amp;")
@@ -2433,7 +2437,7 @@
             <span style="font-size:24px">🏆</span>
             <div>
               <strong>이번 주 보스 토벌 완료!</strong>
-              <small>${esc(boss.name)} 격파 성공 · 보상 ${raid.raidLog?.rewardCoins > 0 ? `+${raid.raidLog.rewardCoins} ${esc(state.settings.currencyName)} ` : ""}수령 완료</small>
+              <small>${esc(boss.name)} 격파 성공 · 보상 ${raid.raidLog?.rewardCoins > 0 ? `${coinIcon(13)} +${raid.raidLog.rewardCoins} ${esc(state.settings.currencyName)} ` : ""}수령 완료</small>
             </div>
           </div>
           <span class="dq-done-stamp">토벌 완료</span>
@@ -2444,7 +2448,7 @@
             <span style="font-size:26px">🏆</span>
             <div>
               <strong>${esc(boss.name)} 격파 성공!!</strong>
-              <small>토벌 보상 ${bossBonus > 0 ? `+${bossBonus} ${esc(state.settings.currencyName)} + ` : ""}🥚 공룡알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +2장" : ""}</small>
+              <small>토벌 보상 ${bossBonus > 0 ? `${coinIcon(13)} +${bossBonus} ${esc(state.settings.currencyName)} + ` : ""}🥚 공룡알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +2장" : ""}</small>
             </div>
           </div>
           <button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-boss-raid" data-week="${weekKey}">
@@ -2622,7 +2626,7 @@
                 <strong>${isParentClear ? "✨ 부모님 올클리어 인정 완료!" : "🎉 오늘의 올클리어 보물상자 완료!"}</strong>
                 <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · ${pct}%</b>
               </div>
-              <span>${paid > 0 ? `보너스 +${paid} ${esc(state.settings.currencyName)} & ` : ""}연속 탐험 +1일 & 공룡알 부화 게이지 획득!</span>
+              <span>${paid > 0 ? `보너스 ${coinIcon(13)} +${paid} ${esc(state.settings.currencyName)} & ` : ""}연속 탐험 +1일 & 공룡알 부화 게이지 획득!</span>
               ${progressBarHtml}
             </div>
           </div>
@@ -2640,7 +2644,7 @@
                   <strong>🎁 모든 퀘스트 완료! 보물상자가 열려요!</strong>
                   <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · 100%</b>
                 </div>
-                <span>보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 공룡알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}</span>
+                <span>보너스 ${coinIcon(13)} +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 공룡알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}</span>
                 ${progressBarHtml}
               </div>
             </div>
@@ -2659,7 +2663,7 @@
                   <strong>일일 올클리어 보물상자</strong>
                   <b class="dq-chest-pct">${sum.claimed} / ${sum.total} 완료 · ${pct}%</b>
                 </div>
-                <span>모두 끝내면 보너스 +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}!</span>
+                <span>모두 끝내면 보너스 ${coinIcon(13)} +${state.settings.allClearBonus} ${esc(state.settings.currencyName)} + 🥚 알 부화 +1${isFossilEnabled() ? " + ⛏️ 발굴권 +1" : ""}!</span>
                 ${progressBarHtml}
               </div>
             </div>
@@ -2739,7 +2743,7 @@
           <div>
             <h2 style="margin:0 0 6px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:24px;">🎁 공룡 선물 교환소</h2>
             <div style="font-size:13.5px;color:var(--tx2);font-weight:600;">
-              열심히 모은 <b>${esc(state.settings.currencyName)}</b>으로 원하는 선물을 교환해요! (부모님 확인 후 교환)
+              열심히 모은 ${coinIcon(14)} <b>${esc(state.settings.currencyName)}</b>으로 원하는 선물을 교환해요! (부모님 확인 후 교환)
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
@@ -3164,10 +3168,10 @@
                   <div style="font-size:11px;color:var(--mut);margin-top:4px;font-weight:800">
                     ${allMastered
                       ? `최종 목표 ${a.target}${ch.unit} 달성 완료!`
-                      : `${Math.min(cur, a.target)} / ${a.target}${ch.unit} · 보상 +${a.reward} ${esc(state.settings.currencyName)}`}
+                      : `${Math.min(cur, a.target)} / ${a.target}${ch.unit} · 보상 ${coinIcon(13)} +${a.reward} ${esc(state.settings.currencyName)}`}
                   </div>
                   ${nextTier ? `
-                    <div class="dq-ach-next-hint">다음 단계: ${nextTier.target}${ch.unit} → +${nextTier.reward} ${esc(state.settings.currencyName)}</div>
+                    <div class="dq-ach-next-hint">다음 단계: ${nextTier.target}${ch.unit} → ${coinIcon(12)} +${nextTier.reward} ${esc(state.settings.currencyName)}</div>
                   ` : ""}
                 </div>
                 <div style="flex-shrink:0">
@@ -3192,7 +3196,7 @@
                   <span style="font-size:18px">${a.icon}</span>
                   <div>
                     <strong>${esc(a.title)}</strong>
-                    <small>${esc(a.chainLabel)} · +${a.reward} ${esc(state.settings.currencyName)}</small>
+                    <small>${esc(a.chainLabel)} · ${coinIcon(12)} +${a.reward} ${esc(state.settings.currencyName)}</small>
                   </div>
                 </div>
               `).join("")}
@@ -3833,11 +3837,11 @@
                 <div style="margin-top:10px;display:flex;justify-content:center">
                   ${rewardClaimed
                     ? `<span class="dq-done-stamp">🏛️ 완성 보상 +${f.reward} · ❤️+3 수령 완료</span>`
-                    : `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-fossil-reward" data-fid="${f.id}">🏆 완성 보상 +${f.reward} ${esc(state.settings.currencyName)} · ❤️+3!</button>`}
+                    : `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-fossil-reward" data-fid="${f.id}">🏆 완성 보상 ${coinIcon(14)} +${f.reward} ${esc(state.settings.currencyName)} · ❤️+3!</button>`}
                 </div>
               ` : `
                 <div class="dq-museum-reward-preview">
-                  🎁 완성 보상: +${f.reward} ${esc(state.settings.currencyName)} · ❤️ 호감도 +3 · 🏆 업적
+                  🎁 완성 보상: ${coinIcon(13)} +${f.reward} ${esc(state.settings.currencyName)} · ❤️ 호감도 +3 · 🏆 업적
                 </div>
               `}
             </article>
@@ -3883,7 +3887,7 @@
             <div style="font-size:66px;margin:8px 0">💎</div>
             <h2 style="margin:0 0 6px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:26px;color:var(--gold-hi)">고대 황금 호박 보석 발굴!!</h2>
             <div style="font-size:13.5px;color:var(--tx2);margin-bottom:14px">
-              모든 ${PARK.ALL_PART_KEYS.length}개 화석 파츠를 완성해서 희귀 호박 보너스 <b>+15 ${esc(state.settings.currencyName)}</b>을 얻었어요!
+              모든 ${PARK.ALL_PART_KEYS.length}개 화석 파츠를 완성해서 희귀 호박 보너스 ${coinIcon(14)} <b>+15 ${esc(state.settings.currencyName)}</b>을 얻었어요!
             </div>
           ` : `
             <span class="dq-boss-trophy-pill" style="font-size:12.5px;padding:4px 12px">
@@ -4084,7 +4088,7 @@
                       <span style="font-size:24px">${cat.icon}</span>
                       <div style="min-width:0">
                         <div style="font-size:15px;font-weight:900;color:#fff">${esc(it.quest.title)}</div>
-                        <div style="font-size:12px;color:var(--mut);font-weight:700">${label} · 보상 +${it.quest.coins} ${esc(state.settings.currencyName)}</div>
+                        <div style="font-size:12px;color:var(--mut);font-weight:700">${label} · 보상 ${coinIcon(13)} +${it.quest.coins} ${esc(state.settings.currencyName)}</div>
                       </div>
                     </div>
                     <div style="display:flex;gap:7px">
@@ -4168,7 +4172,7 @@
         <div class="dq-hatch-stage">
           <div style="font-size:64px;margin:8px 0">🏆</div>
           <h2 style="margin:0 0 8px;font-family:'Jua','Noto Sans KR',sans-serif;font-size:26px;color:var(--gold-hi)">전설의 황금 공룡알!</h2>
-          <div style="font-size:14px;color:var(--tx2);margin-bottom:16px">24종 공룡 도감을 모두 완성해서 보너스 <b>+${m.bonusCoins} ${esc(state.settings.currencyName)}</b>이 나왔어요!</div>
+          <div style="font-size:14px;color:var(--tx2);margin-bottom:16px">24종 공룡 도감을 모두 완성해서 보너스 ${coinIcon(14)} <b>+${m.bonusCoins} ${esc(state.settings.currencyName)}</b>이 나왔어요!</div>
           <button class="dq-btn dq-btn-gold" data-act="close-hatch">🎉 신난다!</button>
         </div>
       `;
@@ -4333,7 +4337,7 @@
             ${ui.feedSpeech
               ? `<div class="dq-feed-speech">${esc(ui.feedSpeech)}</div>`
               : `<div style="margin-top:10px;text-align:center;font-size:12px;color:var(--mut);font-weight:700">
-                  ${esc(state.settings.currencyName)}으로 맛있는 간식을 사주면 공룡 호감도가 쑥쑥 올라가요!
+                  ${coinIcon(13)} ${esc(state.settings.currencyName)}으로 맛있는 간식을 사주면 공룡 호감도가 쑥쑥 올라가요!
                 </div>`}
           </div>
         </div>
