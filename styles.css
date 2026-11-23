@@ -666,6 +666,26 @@ button {
     scrollbar-color: rgba(127, 163, 150, 0.4) transparent;
     -webkit-overflow-scrolling: touch;
   }
+  .dq-museum-pane {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 76px);
+    min-height: 440px;
+    overflow: hidden;
+  }
+  .dq-museum-pane .dq-museum-hero {
+    flex-shrink: 0;
+  }
+  .dq-museum-pane .dq-museum-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    align-content: start;
+    padding: 2px 4px 12px 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 163, 150, 0.4) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
 }
 .dq-wardrobe-slots {
   display: grid;
@@ -4631,6 +4651,12 @@ button {
     font-size: 11px;
     padding: 5px 8px;
   }
+}
+
+.dq-inline-coin {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -2.5px;
 }
 
 /* Portrait / Smaller Screen Tuning */

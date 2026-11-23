@@ -1293,7 +1293,7 @@
       el.className = "dq-toast";
       document.body.appendChild(el);
     }
-    el.textContent = ui.toast;
+    el.innerHTML = esc(ui.toast).replace(/🪙/g, `<span class="dq-inline-coin">${coinSVG(15)}</span>`);
   }
 
   function getNewGearIds() {
@@ -1379,7 +1379,7 @@
     } else if (todaySum.allCleared) {
       return `오늘 퀘스트 올클리어!! 정말 멋져 ${esc(state.settings.childName)}&nbsp;탐험가!&nbsp;🎉`;
     } else if (todaySum.approved > 0) {
-      return `부모님이 확인 완료했대! 반짝이는 보상 버튼을 눌러봐!&nbsp;🪙`;
+      return `부모님이 확인 완료했대! 반짝이는 보상 버튼을 눌러봐!&nbsp;<span class="dq-inline-coin">${coinSVG(15)}</span>`;
     } else if (state.settings.parentNote && state.settings.parentNote.trim()) {
       return `<span class="dq-speech-parent-tag">💌 부모님 말씀</span>${esc(state.settings.parentNote)}`;
     }
@@ -2864,7 +2864,7 @@
           </div>
           <div class="dq-gear-toolbar">
             <div class="dq-gear-subnote">
-              숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 🪙)
+              숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 <span class="dq-inline-coin">${coinSVG(14)}</span>)
             </div>
             <button type="button" role="checkbox" aria-checked="${ownedOnly ? "true" : "false"}"
               class="dq-owned-chk ${ownedOnly ? "on" : ""}" data-act="toggle-gear-owned">
@@ -3085,7 +3085,7 @@
                   ${allMastered
                     ? `<span class="dq-done-stamp">👑 마스터</span>`
                     : claimable
-                    ? `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-ach" data-aid="${a.id}">🪙 +${a.reward}</button>`
+                    ? `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-ach" data-aid="${a.id}">${coinSVG(16)} +${a.reward}</button>`
                     : `<span style="font-size:12px;color:var(--mut);font-weight:800">진행중</span>`
                   }
                 </div>
@@ -3669,6 +3669,7 @@
     const claimedSet = new Set(state.completedFossilRewards || []);
 
     return `
+      <div class="dq-museum-pane">
       <div class="dq-museum-hero">
         <div class="dq-museum-hero-left">
           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
@@ -3752,6 +3753,7 @@
             </article>
           `;
         }).join("")}
+      </div>
       </div>
     `;
   }
@@ -3856,11 +3858,10 @@
     }
 
     return `
-      <div class="dq-modal-backdrop" data-act="close-dig">
+      <div class="dq-modal-backdrop" ${dig.finished ? `data-act="close-dig"` : ""}>
         <div class="dq-modal dq-dig-modal">
           <div class="dq-modal-head">
             <h3>⛏️ 공룡 화석 발굴 현장 ${dig.isFreeDev ? "(🔧 테스트)" : ""}</h3>
-            <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="close-dig">닫기</button>
           </div>
           <div class="dq-modal-body">${body}</div>
         </div>
@@ -4784,7 +4785,7 @@
     return `
       <div class="dq-section-box">
         <div class="dq-section-h">
-          <span>🪙 ${esc(state.settings.currencyName)} 보너스 지급 / 차감 (현재 보유: ${state.coins.toLocaleString()})</span>
+          <span><span class="dq-inline-coin">${coinSVG(16)}</span> ${esc(state.settings.currencyName)} 보너스 지급 / 차감 (현재 보유: ${state.coins.toLocaleString()})</span>
         </div>
         <div class="dq-form-grid">
           <div class="dq-field"><label>사유</label><input id="adj-reason" class="dq-input" placeholder="예: 방 정리 깔끔하게 함! / 동생 도와줌" /></div>
@@ -5090,6 +5091,7 @@
     const prevGearScroll = document.querySelector(".dq-wardrobe-catalog .dq-gear-grid")?.scrollTop || 0;
     const prevStageScroll = document.querySelector(".dq-wardrobe-stage")?.scrollTop || 0;
     const prevCollectionScroll = document.querySelector(".dq-collection-pane .dq-dino-grid")?.scrollTop || 0;
+    const prevMuseumScroll = document.querySelector(".dq-museum-pane .dq-museum-grid")?.scrollTop || 0;
     renderCache = {};
     let mainView = "";
     if (ui.tab === "quests") mainView = renderQuestsTab();
@@ -5126,6 +5128,10 @@
     if (prevCollectionScroll > 0) {
       const dg = document.querySelector(".dq-collection-pane .dq-dino-grid");
       if (dg) dg.scrollTop = prevCollectionScroll;
+    }
+    if (prevMuseumScroll > 0) {
+      const mg = document.querySelector(".dq-museum-pane .dq-museum-grid");
+      if (mg) mg.scrollTop = prevMuseumScroll;
     }
     renderToast();
     syncBossBattleFX();
@@ -5466,6 +5472,7 @@
         break;
 
       case "close-dig":
+        if (ui.digModal && !ui.digModal.finished) break;
         ui.digModal = null;
         render();
         break;
