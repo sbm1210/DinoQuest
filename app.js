@@ -2454,15 +2454,46 @@
       `
     ) : "";
 
-    const specialQuestsHtml = raid.bossQuests.length > 0 ? `
-      <div class="dq-boss-subquests">
-        <div class="dq-boss-subquests-head">
-          <span>🔥 보스 필살기 퀘스트</span>
-          <span class="dq-boss-dmg-tag crit">완료 시 -${BOSS_DMG.boss} 초강력 대미지!</span>
-        </div>
-        <div class="dq-quest-list">
-          ${raid.bossQuests.map(b => renderQuestItem("boss", weekKey, b, getBossLog(weekKey, b.id), false)).join("")}
-        </div>
+    const specialQuestsHtml = !raid.defeated && raid.bossQuests.length > 0 ? `
+      <div class="dq-boss-ult-list">
+        ${raid.bossQuests.map(b => {
+          const log = getBossLog(weekKey, b.id);
+          const cat = getCategory(b.category);
+          const st = log.status;
+          let actHtml = "";
+          if (st === "todo") {
+            actHtml = `<button class="dq-btn dq-btn-green dq-btn-sm" data-act="submit-quest" data-kind="boss" data-key="${weekKey}" data-qid="${b.id}">🙋 다 했어요!</button>`;
+          } else if (st === "waiting") {
+            actHtml = `
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                <div class="dq-waiting-pill" style="padding:5px 9px;font-size:11.5px">📢 확인 대기</div>
+                <button class="dq-tiny-link" data-act="cancel-wait" data-kind="boss" data-key="${weekKey}" data-qid="${b.id}">취소</button>
+              </div>
+            `;
+          } else if (st === "approved") {
+            actHtml = `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-quest" data-kind="boss" data-key="${weekKey}" data-qid="${b.id}">${coinSVG(16)} +${b.coins} 받기!</button>`;
+          } else if (st === "claimed") {
+            actHtml = `<span class="dq-done-stamp">✓ 완료!</span>`;
+          }
+          return `
+            <div class="dq-boss-ult-bar ${st}">
+              <div class="dq-boss-victory-txt">
+                <span class="dq-boss-ult-ico" style="border-color:${cat.color}55;background:${cat.color}1c">${cat.icon}</span>
+                <div style="min-width:0">
+                  <strong style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    <span class="dq-boss-dmg-tag crit" style="font-size:10.5px;padding:1px 7px">🔥 필살기 -${BOSS_DMG.boss}</span>
+                    <span>${esc(b.title)}</span>
+                  </strong>
+                  <small>
+                    ${b.detail ? `${esc(b.detail)} · ` : ""}<span class="dq-inline-coin">${coinSVG(13)}</span> +${b.coins} ${esc(state.settings.currencyName)}
+                    ${log.feedback && st === "todo" ? ` · 💬 ${esc(log.feedback)}` : ""}
+                  </small>
+                </div>
+              </div>
+              <div style="flex-shrink:0">${actHtml}</div>
+            </div>
+          `;
+        }).join("")}
       </div>
     ` : "";
 
@@ -2551,8 +2582,7 @@
           </div>
         </div>
 
-        ${raidRewardBanner}
-        ${specialQuestsHtml}
+        ${raid.defeated ? raidRewardBanner : specialQuestsHtml}
         ${devBarHtml}
       </section>
     `;

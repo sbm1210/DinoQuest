@@ -4640,6 +4640,44 @@ button {
   }
 }
 
+.dq-boss-ult-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 9px;
+}
+.dq-boss-ult-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 13px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(25, 49, 43, 0.85), rgba(16, 33, 29, 0.96));
+  border: 1.5px solid rgba(249, 115, 22, 0.42);
+}
+.dq-boss-ult-bar.waiting {
+  border-color: rgba(251, 191, 36, 0.65);
+  background: linear-gradient(180deg, rgba(66, 48, 16, 0.45), rgba(24, 34, 28, 0.95));
+}
+.dq-boss-ult-bar.approved {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.22), rgba(22, 52, 43, 0.95));
+}
+.dq-boss-ult-bar.claimed {
+  border-color: rgba(52, 211, 153, 0.35);
+  opacity: 0.78;
+}
+.dq-boss-ult-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  display: grid;
+  place-items: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
 .dq-day-header {
   min-height: 34px;
 }
