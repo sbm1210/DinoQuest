@@ -2441,7 +2441,7 @@
           <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg}">
             <div class="dq-arena-fighter hero">
               <div class="dq-arena-hero-art">
-                ${renderDinoArt(partner, { size: 84, equipped: state.equippedGear, mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
+                ${renderDinoArt(partner, { size: 104, equipped: state.equippedGear, mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
               </div>
               <span class="dq-fighter-tag hero">${esc(getDinoDisplayNick(partner, isDinoUsingVariant(partner.id)))}</span>
             </div>
