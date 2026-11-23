@@ -54,8 +54,46 @@
   function getDinoDisplayNick(d, useVariant = false) {
     return useVariant && d?.variant ? d.variant.nick : (d?.nick || "");
   }
-  function addPartnerAffinity(pts) {
-    const did = state.partnerDino;
+  const DINO_FOODS = [
+    {
+      id: "berry",
+      icon: "🍓",
+      name: "달콤 열매",
+      cost: 5,
+      affinity: 1,
+      lines: [
+        "아삭아삭! 달콤해~ 고마워! 🍓",
+        "냠냠! 기분이 좋아졌어! ❤️",
+        "맛있는 열매다! 더 친해진 느낌이야! ✨"
+      ]
+    },
+    {
+      id: "steak",
+      icon: "🍖",
+      name: "영양 간식",
+      cost: 12,
+      affinity: 3,
+      lines: [
+        "우와! 내가 제일 좋아하는 맛이야! 🍖✨",
+        "배부르고 든든해! 최고야! 💪❤️",
+        "꿀맛!! 너랑 함께라서 정말 행복해! 🦕"
+      ]
+    },
+    {
+      id: "amber",
+      icon: "🍯",
+      name: "황금 호박 젤리",
+      cost: 20,
+      affinity: 5,
+      lines: [
+        "반짝반짝 황금 젤리!! 정말 사랑해! 🍯💛",
+        "호감도가 쑥쑥 올라가는 기분이야!! ✨❤️",
+        "세상에서 제일 맛있는 특급 간식이야!! 🎉"
+      ]
+    }
+  ];
+
+  function addDinoAffinity(did, pts) {
     if (!did || !pts || pts <= 0) return null;
     if (!state.dinoAffinity || typeof state.dinoAffinity !== "object") state.dinoAffinity = {};
     if (!Array.isArray(state.unlockedVariants)) state.unlockedVariants = [];
@@ -66,6 +104,14 @@
       return getDino(did);
     }
     return null;
+  }
+  function addPartnerAffinity(pts) {
+    return addDinoAffinity(state.partnerDino, pts);
+  }
+  function getCompletedFossilCount(s = state) {
+    if (!PARK) return 0;
+    const owned = new Set(Array.isArray(s.fossilParts) ? s.fossilParts : []);
+    return PARK.FOSSILS.filter(f => f.parts.every(p => owned.has(`${f.id}:${p.key}`))).length;
   }
 
   /* ---- Storage availability check (like Notch) ---- */
@@ -211,13 +257,25 @@
     },
     {
       id: "fossil_museum",
-      label: "화석 박물관",
+      label: "화석 발굴",
       unit: "파츠",
       metric: s => (Array.isArray(s.fossilParts) ? s.fossilParts.length : 0),
       tiers: [
         { id: "fossil_3", icon: "🦴", title: "초보 화석 발굴가", desc: "화석 파츠 5개 발굴하기", reward: 30, target: 5 },
         { id: "fossil_9", icon: "⛏️", title: "공룡 고생물학자", desc: "화석 파츠 15개 발굴하기", reward: 80, target: 15 },
         { id: "fossil_18", icon: "🏛️", title: "박물관 대관장!", desc: "30개 화석 파츠를 모두 복원하기", reward: 220, target: 30 }
+      ]
+    },
+    {
+      id: "fossil_complete",
+      label: "화석 전시 완성",
+      unit: "종",
+      metric: s => getCompletedFossilCount(s),
+      tiers: [
+        { id: "fossil_comp_1", icon: "🦖", title: "첫 화석 복원 성공!", desc: "공룡 화석 1종 완성하기", reward: 50, target: 1 },
+        { id: "fossil_comp_2", icon: "🦴", title: "화석 전시회 개장", desc: "공룡 화석 2종 완성하기", reward: 80, target: 2 },
+        { id: "fossil_comp_3", icon: "🏛️", title: "화석 마스터 큐레이터", desc: "공룡 화석 3종 완성하기", reward: 120, target: 3 },
+        { id: "fossil_comp_6", icon: "👑", title: "전설의 화석 그랜드 마스터!", desc: "공룡 화석 6종 모두 완성하기", reward: 300, target: 6 }
       ]
     }
   ];
@@ -237,14 +295,14 @@
   function getActiveAchievementChains(s = state) {
     return ACHIEVEMENT_CHAINS.filter(ch => {
       if (ch.id === "boss_raid" && !isBossRaidEnabled(s)) return false;
-      if (ch.id === "fossil_museum" && !isFossilEnabled(s)) return false;
+      if ((ch.id === "fossil_museum" || ch.id === "fossil_complete") && !isFossilEnabled(s)) return false;
       return true;
     });
   }
   function getActiveAchievements(s = state) {
     return ACHIEVEMENTS.filter(a => {
       if (a.chainId === "boss_raid" && !isBossRaidEnabled(s)) return false;
-      if (a.chainId === "fossil_museum" && !isFossilEnabled(s)) return false;
+      if ((a.chainId === "fossil_museum" || a.chainId === "fossil_complete") && !isFossilEnabled(s)) return false;
       return true;
     });
   }
@@ -550,7 +608,13 @@
         s.equippedGear[sl] = null;
       }
     }
-    s.seenGear = (s.seenGear || []).filter(id => unlockedSet.has(id));
+    const seenSet = new Set((s.seenGear || []).filter(id => unlockedSet.has(id)));
+    for (const sl of ["head", "face", "back", "hand", "aura", "stage"]) {
+      if (s.equippedGear[sl] && unlockedSet.has(s.equippedGear[sl])) {
+        seenSet.add(s.equippedGear[sl]);
+      }
+    }
+    s.seenGear = [...seenSet];
     return s;
   }
 
@@ -588,6 +652,8 @@
     dinoLineBag: {},         // Non-repeating shuffled dialogue deck per dino
     dinoLastLine: {},        // Last spoken line per dino (prevents back-to-back repeats)
     digModal: null,          // Fossil excavation minigame session state
+    feedDinoId: null,        // Dinosaur feeding modal target dino ID
+    feedSpeech: "",          // Last eating reaction message in feeding modal
     mailboxOpen: false,      // Child Developer Mailbox modal
     mailboxDraftCat: "park", // Selected category tag in composer
     mailboxDraftText: "",    // Draft message text (preserved across renders)
@@ -926,11 +992,18 @@
 
     state.completedFossilRewards.push(f.id);
     addCoins(f.reward, `화석 박물관 완성: ${f.name}`);
+    const unlockedVar = f.dinoId ? addDinoAffinity(f.dinoId, 3) : null;
+    const targetDino = f.dinoId ? getDino(f.dinoId) : null;
     saveState();
     sfx.museumComplete();
     megaCelebration();
     flyCoins(btnEl, `+${f.reward}`, 10);
-    showToast(`🏛️ ${f.name} 전시 완성 보상 +${f.reward} ${state.settings.currencyName}!`, 3200);
+    if (unlockedVar && unlockedVar.variant) {
+      showToast(`🏛️ ${f.name} 완성! +${f.reward} 코인 · ✨ [${unlockedVar.variant.name}] 변이 해금!!`, 4000);
+    } else {
+      const affNote = targetDino ? ` · ❤️ ${targetDino.nick} 호감도 +3` : "";
+      showToast(`🏛️ ${f.name} 완성 보상 +${f.reward} ${state.settings.currencyName}${affNote}!`, 3500);
+    }
     render();
   }
 
@@ -1023,6 +1096,11 @@
           state.totalDigs = (Number(state.totalDigs) || 0) + 1;
           if (dig.targetPart && !state.fossilParts.includes(dig.targetPart.partId)) {
             state.fossilParts.push(dig.targetPart.partId);
+            const fObj = PARK.getFossil(dig.targetPart.fossilId);
+            const ownedNow = new Set(state.fossilParts);
+            if (fObj && fObj.parts.every(p => ownedNow.has(`${fObj.id}:${p.key}`))) {
+              showToast(`🎉 ${fObj.name} 5파츠 완성!! 박물관에서 완성 보상과 업적을 받아보세요!`, 4200);
+            }
           } else if (dig.isAmberBonus) {
             addCoins(15, "고대 황금 호박 화석 보너스");
           }
@@ -1238,6 +1316,54 @@
     const streak = computeStreak(state);
     state.seenGear = GEAR.getUnlockedGearIds(state, streak);
     saveState();
+  }
+
+  function markSingleGearSeen(gid) {
+    if (!gid) return;
+    if (!Array.isArray(state.seenGear)) state.seenGear = [];
+    if (!state.seenGear.includes(gid)) {
+      state.seenGear.push(gid);
+    }
+  }
+
+  function feedDino(did, foodId, btnEl) {
+    const d = getDino(did);
+    const food = DINO_FOODS.find(f => f.id === foodId);
+    if (!d || !food || !isDinoUnlocked(did)) return;
+    if (state.coins < food.cost) {
+      sfx.error();
+      showToast(`${state.settings.currencyName}이 부족해요! (필요: ${food.cost})`, 2200);
+      return;
+    }
+
+    addCoins(-food.cost, `${d.nick} 먹이주기 (${food.name})`);
+    state.totalFeeds = (Number(state.totalFeeds) || 0) + 1;
+    const unlockedVar = addDinoAffinity(did, food.affinity);
+    saveState();
+
+    const line = food.lines[Math.floor(Math.random() * food.lines.length)];
+    ui.feedSpeech = `${food.icon} ${line} (❤️ +${food.affinity})`;
+    triggerDinoMood("jump");
+
+    if (unlockedVar && unlockedVar.variant) {
+      sfx.fanfare();
+      megaCelebration();
+      showToast(`✨ 호감도 MAX! [${unlockedVar.variant.name}] 스페셜 변이 해금!!`, 4200);
+    } else {
+      sfx.approve();
+      const rect = btnEl?.getBoundingClientRect?.();
+      if (rect) {
+        burstConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 22);
+      } else {
+        burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 22);
+      }
+      showToast(`${food.icon} ${d.nick}에게 ${food.name} 먹이주기 성공! ❤️ 호감도 +${food.affinity}`, 2400);
+    }
+
+    if (ui.tab === "park" && ui.parkView === "diorama") {
+      ui.parkBubble = { dinoId: did, text: line };
+    }
+    render();
   }
 
   function getPartnerSpeechHtml() {
@@ -1943,7 +2069,7 @@
     const waitingCount = getAllWaitingItems().length;
     const achClaimable = getClaimableAchievementsCount();
     const newGearCount = getNewGearIds().length;
-    const dinoNotify = state.pendingEggs + achClaimable + newGearCount;
+    const dinoNotify = state.pendingEggs + newGearCount;
     const parkNotify = isFossilEnabled() ? ((Number(state.digTickets) || 0) + getClaimableFossilCount()) : 0;
     const mailboxUnread = getChildUnreadMailboxCount();
     const rank = getRankInfo(state.totalQuestsClaimed);
@@ -1977,6 +2103,10 @@
           <button class="dq-nav-btn ${ui.tab === "park" ? "on" : ""}" data-act="nav" data-val="park">
             🏞️ 공룡 공원
             ${parkNotify > 0 ? `<span class="dq-dot-badge">${parkNotify}</span>` : ""}
+          </button>
+          <button class="dq-nav-btn ${ui.tab === "achievements" ? "on" : ""}" data-act="nav" data-val="achievements">
+            🏆 탐험 업적
+            ${achClaimable > 0 ? `<span class="dq-dot-badge">${achClaimable}</span>` : ""}
           </button>
         </nav>
 
@@ -2043,7 +2173,7 @@
 
         <div class="dq-egg-strip">
           <div class="dq-egg-mini ${state.pendingEggs > 0 ? "ready" : ""}">
-            ${eggSVG(eggStage, 48)}
+            ${eggSVG(eggStage, 40)}
           </div>
           <div class="dq-egg-meta">
             <div class="dq-egg-label">
@@ -2307,64 +2437,66 @@
           <span style="font-size:12px;color:var(--mut);font-weight:700">${formatKoDate(weekKey)} 주간</span>
         </div>
 
-        <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg}">
-          <div class="dq-arena-fighter hero">
-            <div class="dq-arena-hero-art">
-              ${renderDinoArt(partner, { size: 112, equipped: state.equippedGear, mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
-            </div>
-            <span class="dq-fighter-tag hero">${esc(getDinoDisplayNick(partner, isDinoUsingVariant(partner.id)))}</span>
-          </div>
-
-          <div class="dq-arena-center">
-            ${isAttacking ? `
-              <div class="dq-slash-beam ${bb.isCrit ? "crit" : ""}"></div>
-              <div class="dq-dmg-pop ${bb.isCrit ? "crit" : ""}">
-                <small>${esc(bb.label)}</small>
-                <strong>-${bb.dmg}</strong>
+        <div class="dq-boss-battle-row">
+          <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg}">
+            <div class="dq-arena-fighter hero">
+              <div class="dq-arena-hero-art">
+                ${renderDinoArt(partner, { size: 84, equipped: state.equippedGear, mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
               </div>
-            ` : raid.defeated ? `
-              <div class="dq-vs-badge ko">WIN!</div>
-            ` : `
-              <div class="dq-vs-badge">VS</div>
-            `}
-          </div>
-
-          <div class="dq-arena-fighter boss" data-act="tap-boss" data-bid="${boss.id}" title="눌러서 보스 포효 듣기!">
-            <div class="dq-arena-boss-art">
-              <img class="dq-boss-sprite" src="${boss.sprite}" alt="${esc(boss.name)}" draggable="false" />
-              ${raid.defeated ? `<div class="dq-ko-stamp">K.O.</div>` : ""}
-              ${isAttacking ? `<div class="dq-hit-spark"></div>` : ""}
+              <span class="dq-fighter-tag hero">${esc(getDinoDisplayNick(partner, isDinoUsingVariant(partner.id)))}</span>
             </div>
-            <span class="dq-fighter-tag boss">${esc(boss.name)}</span>
-          </div>
-        </div>
 
-        <div class="dq-boss-hud">
-          <div class="dq-boss-hp-head">
-            <div class="dq-boss-name-row">
-              <strong>${esc(boss.name)}</strong>
-              <span class="dq-boss-title-sub">${esc(boss.title)}</span>
+            <div class="dq-arena-center">
+              ${isAttacking ? `
+                <div class="dq-slash-beam ${bb.isCrit ? "crit" : ""}"></div>
+                <div class="dq-dmg-pop ${bb.isCrit ? "crit" : ""}">
+                  <small>${esc(bb.label)}</small>
+                  <strong>-${bb.dmg}</strong>
+                </div>
+              ` : raid.defeated ? `
+                <div class="dq-vs-badge ko">WIN!</div>
+              ` : `
+                <div class="dq-vs-badge">VS</div>
+              `}
             </div>
-            <div class="dq-boss-hp-nums ${hpToneClass}">
-              <span>HP ${raid.curHp} / ${raid.maxHp}</span>
-              <small>(${raid.hpPct}%)</small>
+
+            <div class="dq-arena-fighter boss" data-act="tap-boss" data-bid="${boss.id}" title="눌러서 보스 포효 듣기!">
+              <div class="dq-arena-boss-art">
+                <img class="dq-boss-sprite" src="${boss.sprite}" alt="${esc(boss.name)}" draggable="false" />
+                ${raid.defeated ? `<div class="dq-ko-stamp">K.O.</div>` : ""}
+                ${isAttacking ? `<div class="dq-hit-spark"></div>` : ""}
+              </div>
+              <span class="dq-fighter-tag boss">${esc(boss.name)}</span>
             </div>
           </div>
 
-          <div class="dq-boss-hp-track">
-            <div id="dq-boss-hp-ghost" class="dq-boss-hp-ghost" style="width:${hpBarStartPct}%"></div>
-            <div id="dq-boss-hp-fill" class="dq-boss-hp-fill ${hpToneClass}" style="width:${hpBarStartPct}%"></div>
-          </div>
+          <div class="dq-boss-hud">
+            <div class="dq-boss-hp-head">
+              <div class="dq-boss-name-row">
+                <strong>${esc(boss.name)}</strong>
+                <span class="dq-boss-title-sub">${esc(boss.title)}</span>
+              </div>
+              <div class="dq-boss-hp-nums ${hpToneClass}">
+                <span>HP ${raid.curHp} / ${raid.maxHp}</span>
+                <small>(${raid.hpPct}%)</small>
+              </div>
+            </div>
 
-          <div class="dq-boss-quote">
-            <span>💬</span>
-            <span>"${esc(bossLine)}"</span>
-          </div>
+            <div class="dq-boss-hp-track">
+              <div id="dq-boss-hp-ghost" class="dq-boss-hp-ghost" style="width:${hpBarStartPct}%"></div>
+              <div id="dq-boss-hp-fill" class="dq-boss-hp-fill ${hpToneClass}" style="width:${hpBarStartPct}%"></div>
+            </div>
 
-          <div class="dq-boss-dmg-guide">
-            <span>⚔️ 일일 퀘스트 <b>-${BOSS_DMG.daily}</b></span>
-            <span>💥 올클리어 <b>-${BOSS_DMG.allClear}</b></span>
-            <span>🔥 주간 보스 퀘스트 <b>-${BOSS_DMG.boss}</b></span>
+            <div class="dq-boss-quote">
+              <span>💬</span>
+              <span>"${esc(bossLine)}"</span>
+            </div>
+
+            <div class="dq-boss-dmg-guide">
+              <span>⚔️ 일일 <b>-${BOSS_DMG.daily}</b></span>
+              <span>💥 올클 <b>-${BOSS_DMG.allClear}</b></span>
+              <span>🔥 보스퀘 <b>-${BOSS_DMG.boss}</b></span>
+            </div>
           </div>
         </div>
 
@@ -2487,7 +2619,7 @@
 
         ${chestHtml}
 
-        <div class="dq-quest-list">
+        <div class="dq-quest-list dq-daily-quest-grid">
           ${quests.length > 0
             ? quests.map(q => renderQuestItem("daily", dateStr, q, getQuestLog(dateStr, q.id), isFuture)).join("")
             : `<div class="dq-empty">🦖 이 날은 배정된 숙제가 없어요!<br><small style="opacity:.8">푹 쉬는 날이에요. 연속 탐험 기록도 안전하게 유지됩니다!</small></div>`
@@ -2628,6 +2760,7 @@
     const affPct = Math.min(100, Math.round((aff / VARIANT_AFFINITY_NEED) * 100));
     const streak = computeStreak(state);
     const unlockedIds = new Set(GEAR.getUnlockedGearIds(state, streak));
+    const newGearSet = new Set(getNewGearIds());
     const ownedOnly = Boolean(state.settings.gearOwnedOnly);
     const slotItems = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
     const slotOwnedCount = slotItems.filter(it => unlockedIds.has(it.id)).length;
@@ -2671,6 +2804,7 @@
           <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px">
             <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="roar-dino" data-did="${partner.id}">🔊 포효!</button>
             <button class="dq-btn dq-btn-green dq-btn-sm" data-act="jump-dino">⚡ 점프!</button>
+            <button class="dq-btn dq-btn-gold dq-btn-sm" data-act="open-feed-dino" data-did="${partner.id}">🍖 먹이주기</button>
             <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="clear-gear" ${equippedCount === 0 ? "disabled" : ""}>🔄 벗기</button>
           </div>
 
@@ -2715,13 +2849,14 @@
             <h2>👔 장비 옷장 (${unlockedIds.size} / ${GEAR.ITEMS.length} 해금)</h2>
             <div class="dq-day-pills">
               <button class="dq-day-pill ${ui.gearSlot === "all" ? "on" : ""}" data-act="gear-slot" data-val="all">
-                전체${ownedOnly ? ` <span class="dq-slot-cnt">${unlockedIds.size}</span>` : ""}
+                전체${ownedOnly ? ` <span class="dq-slot-cnt">${unlockedIds.size}</span>` : ""}${newGearSet.size > 0 ? `<span class="dq-slot-new-dot">N</span>` : ""}
               </button>
               ${GEAR.SLOTS.map(sl => {
                 const slOwned = GEAR.ITEMS.filter(it => it.slot === sl.id && unlockedIds.has(it.id)).length;
+                const slNew = GEAR.ITEMS.filter(it => it.slot === sl.id && newGearSet.has(it.id)).length;
                 return `
                   <button class="dq-day-pill ${ui.gearSlot === sl.id ? "on" : ""} ${ownedOnly && slOwned === 0 ? "is-empty-slot" : ""}" data-act="gear-slot" data-val="${sl.id}">
-                    ${sl.icon} ${sl.label}${ownedOnly ? ` <span class="dq-slot-cnt">${slOwned}</span>` : ""}
+                    ${sl.icon} ${sl.label}${ownedOnly ? ` <span class="dq-slot-cnt">${slOwned}</span>` : ""}${slNew > 0 ? `<span class="dq-slot-new-dot">N</span>` : ""}
                   </button>
                 `;
               }).join("")}
@@ -2749,12 +2884,17 @@
                 ${filtered.map(it => {
                   const unlocked = unlockedIds.has(it.id);
                   const equipped = state.equippedGear?.[it.slot] === it.id;
+                  const isNew = unlocked && !equipped && newGearSet.has(it.id);
                   const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
                   const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
                   return `
-                    <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""}"
+                    <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""} ${isNew ? "is-new" : ""}"
                       ${unlocked ? `data-act="toggle-gear" data-gid="${it.id}"` : ""}>
-                      ${equipped ? `<span class="dq-partner-crown" style="background:var(--gold);color:#3b1900">✓ 착용중</span>` : ""}
+                      ${equipped
+                        ? `<span class="dq-partner-crown" style="background:var(--gold);color:#3b1900">✓ 착용중</span>`
+                        : isNew
+                          ? `<span class="dq-gear-new-badge">NEW</span>`
+                          : ""}
                       <div class="dq-gear-preview-box">${renderGearThumb(it)}</div>
                       <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
                       <div style="font-size:14.5px;font-weight:900;color:#fff">${esc(it.name)}</div>
@@ -2779,24 +2919,21 @@
 
   function renderDinosTab() {
     const streak = computeStreak(state);
-    const achClaimable = getClaimableAchievementsCount();
     const newGearCnt = getNewGearIds().length;
     const unlockedGearCnt = GEAR ? GEAR.getUnlockedGearIds(state, streak).length : 0;
     const need = Math.max(1, Number(state.settings.eggNeedDays) || 3);
     const eggPct = state.pendingEggs > 0 ? 100 : Math.min(100, Math.round((state.eggProgress / need) * 100));
+    const subTab = ui.dinoSubTab === "collection" ? "collection" : "wardrobe";
 
     return `
       <main>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
           <div class="dq-subtabs" style="margin-bottom:0">
-            <button class="dq-subtab ${ui.dinoSubTab === "wardrobe" ? "on" : ""}" data-act="dino-sub" data-val="wardrobe">
+            <button class="dq-subtab ${subTab === "wardrobe" ? "on" : ""}" data-act="dino-sub" data-val="wardrobe">
               👔 공룡 꾸미기 (${unlockedGearCnt}/${GEAR ? GEAR.ITEMS.length : 0})${newGearCnt > 0 ? ` ✨` : ""}
             </button>
-            <button class="dq-subtab ${ui.dinoSubTab === "collection" ? "on" : ""}" data-act="dino-sub" data-val="collection">
+            <button class="dq-subtab ${subTab === "collection" ? "on" : ""}" data-act="dino-sub" data-val="collection">
               🦕 공룡 도감 (${getTotalCollectionCount()}/${DINOS.length * 2})
-            </button>
-            <button class="dq-subtab ${ui.dinoSubTab === "achievements" ? "on" : ""}" data-act="dino-sub" data-val="achievements">
-              🏆 탐험 업적 ${achClaimable > 0 ? `(${achClaimable}개 받기!)` : ""}
             </button>
           </div>
 
@@ -2811,7 +2948,7 @@
           </div>
         </div>
 
-        ${ui.dinoSubTab === "wardrobe" ? renderWardrobeView() : ui.dinoSubTab === "collection" ? (() => {
+        ${subTab === "wardrobe" ? renderWardrobeView() : (() => {
           const cf = ui.collectionFilter || "all";
           const baseCnt = getUnlockedDinoCount();
           const varCnt = getUnlockedVariantCount();
@@ -2874,98 +3011,103 @@
               }).join("")}
             </div>
           `;
-        })() : (() => {
-          const activeChains = getActiveAchievementChains(state);
-          const activeAchs = getActiveAchievements(state);
-          const claimedSet = new Set(state.claimedAchievements);
-          const totalSteps = activeAchs.length;
-          const claimedSteps = activeAchs.filter(a => claimedSet.has(a.id)).length;
-          const completedList = activeAchs.filter(a => claimedSet.has(a.id));
-
-          return `
-            <div class="dq-ach-toolbar">
-              <div class="dq-ach-summary">
-                <span>🏆 단계별 탐험 업적</span>
-                <b>${claimedSteps} / ${totalSteps} 단계 완료</b>
-                <small>완료한 단계는 숨겨지고 다음 목표가 자동으로 열려요!</small>
-              </div>
-              ${claimedSteps > 0 ? `
-                <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="toggle-completed-ach">
-                  ${ui.showCompletedAch ? "▲ 완료 기록 접기" : `📜 완료한 업적 보기 (${claimedSteps})`}
-                </button>
-              ` : ""}
-            </div>
-
-            <div class="dq-ach-grid">
-              ${activeChains.map(ch => {
-                const cur = ch.metric(state, streak);
-                const activeIdx = ch.tiers.findIndex(t => !claimedSet.has(t.id));
-                const allMastered = activeIdx === -1;
-                const tierIdx = allMastered ? ch.tiers.length - 1 : activeIdx;
-                const a = ch.tiers[tierIdx];
-                const nextTier = !allMastered ? ch.tiers[tierIdx + 1] : null;
-                const claimable = !allMastered && cur >= a.target;
-                const pct = allMastered ? 100 : Math.min(100, Math.round((cur / a.target) * 100));
-                const dotsHtml = ch.tiers.map((t, idx) => {
-                  const isDone = claimedSet.has(t.id);
-                  const isCur = !allMastered && idx === tierIdx;
-                  return `<span class="dq-ach-dot ${isDone ? "done" : isCur ? "cur" : ""}" title="${esc(t.title)}"></span>`;
-                }).join("");
-
-                return `
-                  <div class="dq-ach-card ${claimable ? "claimable" : allMastered ? "done mastered" : ""}">
-                    <div class="dq-ach-icon">${a.icon}</div>
-                    <div style="flex:1;min-width:0">
-                      <div class="dq-ach-chain-meta">
-                        <span class="dq-ach-chain-tag">${esc(ch.label)}</span>
-                        <span class="dq-ach-step-label">${allMastered ? "ALL CLEAR" : `${tierIdx + 1} / ${ch.tiers.length} 단계`}</span>
-                        <span class="dq-ach-tier-dots">${dotsHtml}</span>
-                      </div>
-                      <div style="font-size:15px;font-weight:900;color:#fff">${esc(a.title)}</div>
-                      <div style="font-size:12px;color:var(--tx2);margin:2px 0 6px">${esc(a.desc)}</div>
-                      <div class="dq-bar" style="height:7px">
-                        <div class="dq-bar-fill ${claimable || allMastered ? "gold" : ""}" style="width:${pct}%"></div>
-                      </div>
-                      <div style="font-size:11px;color:var(--mut);margin-top:4px;font-weight:800">
-                        ${allMastered
-                          ? `최종 목표 ${a.target}${ch.unit} 달성 완료!`
-                          : `${Math.min(cur, a.target)} / ${a.target}${ch.unit} · 보상 +${a.reward} ${esc(state.settings.currencyName)}`}
-                      </div>
-                      ${nextTier ? `
-                        <div class="dq-ach-next-hint">다음 단계: ${nextTier.target}${ch.unit} → +${nextTier.reward} ${esc(state.settings.currencyName)}</div>
-                      ` : ""}
-                    </div>
-                    <div style="flex-shrink:0">
-                      ${allMastered
-                        ? `<span class="dq-done-stamp">👑 마스터</span>`
-                        : claimable
-                        ? `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-ach" data-aid="${a.id}">🪙 +${a.reward}</button>`
-                        : `<span style="font-size:12px;color:var(--mut);font-weight:800">진행중</span>`
-                      }
-                    </div>
-                  </div>
-                `;
-              }).join("")}
-            </div>
-
-            ${ui.showCompletedAch && completedList.length > 0 ? `
-              <section class="dq-ach-archive">
-                <div class="dq-ach-archive-head">✅ 완료한 업적 기록 (${completedList.length}개)</div>
-                <div class="dq-ach-archive-grid">
-                  ${completedList.map(a => `
-                    <div class="dq-ach-mini-done">
-                      <span style="font-size:18px">${a.icon}</span>
-                      <div>
-                        <strong>${esc(a.title)}</strong>
-                        <small>${esc(a.chainLabel)} · +${a.reward} ${esc(state.settings.currencyName)}</small>
-                      </div>
-                    </div>
-                  `).join("")}
-                </div>
-              </section>
-            ` : ""}
-          `;
         })()}
+      </main>
+    `;
+  }
+
+  function renderAchievementsTab() {
+    const streak = computeStreak(state);
+    const activeChains = getActiveAchievementChains(state);
+    const activeAchs = getActiveAchievements(state);
+    const claimedSet = new Set(state.claimedAchievements);
+    const totalSteps = activeAchs.length;
+    const claimedSteps = activeAchs.filter(a => claimedSet.has(a.id)).length;
+    const completedList = activeAchs.filter(a => claimedSet.has(a.id));
+
+    return `
+      <main>
+        <div class="dq-ach-toolbar">
+          <div class="dq-ach-summary">
+            <span>🏆 단계별 탐험 업적</span>
+            <b>${claimedSteps} / ${totalSteps} 단계 완료</b>
+            <small>완료한 단계는 숨겨지고 다음 목표가 자동으로 열려요!</small>
+          </div>
+          ${claimedSteps > 0 ? `
+            <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="toggle-completed-ach">
+              ${ui.showCompletedAch ? "▲ 완료 기록 접기" : `📜 완료한 업적 보기 (${claimedSteps})`}
+            </button>
+          ` : ""}
+        </div>
+
+        <div class="dq-ach-grid">
+          ${activeChains.map(ch => {
+            const cur = ch.metric(state, streak);
+            const activeIdx = ch.tiers.findIndex(t => !claimedSet.has(t.id));
+            const allMastered = activeIdx === -1;
+            const tierIdx = allMastered ? ch.tiers.length - 1 : activeIdx;
+            const a = ch.tiers[tierIdx];
+            const nextTier = !allMastered ? ch.tiers[tierIdx + 1] : null;
+            const claimable = !allMastered && cur >= a.target;
+            const pct = allMastered ? 100 : Math.min(100, Math.round((cur / a.target) * 100));
+            const dotsHtml = ch.tiers.map((t, idx) => {
+              const isDone = claimedSet.has(t.id);
+              const isCur = !allMastered && idx === tierIdx;
+              return `<span class="dq-ach-dot ${isDone ? "done" : isCur ? "cur" : ""}" title="${esc(t.title)}"></span>`;
+            }).join("");
+
+            return `
+              <div class="dq-ach-card ${claimable ? "claimable" : allMastered ? "done mastered" : ""}">
+                <div class="dq-ach-icon">${a.icon}</div>
+                <div style="flex:1;min-width:0">
+                  <div class="dq-ach-chain-meta">
+                    <span class="dq-ach-chain-tag">${esc(ch.label)}</span>
+                    <span class="dq-ach-step-label">${allMastered ? "ALL CLEAR" : `${tierIdx + 1} / ${ch.tiers.length} 단계`}</span>
+                    <span class="dq-ach-tier-dots">${dotsHtml}</span>
+                  </div>
+                  <div style="font-size:15px;font-weight:900;color:#fff">${esc(a.title)}</div>
+                  <div style="font-size:12px;color:var(--tx2);margin:2px 0 6px">${esc(a.desc)}</div>
+                  <div class="dq-bar" style="height:7px">
+                    <div class="dq-bar-fill ${claimable || allMastered ? "gold" : ""}" style="width:${pct}%"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--mut);margin-top:4px;font-weight:800">
+                    ${allMastered
+                      ? `최종 목표 ${a.target}${ch.unit} 달성 완료!`
+                      : `${Math.min(cur, a.target)} / ${a.target}${ch.unit} · 보상 +${a.reward} ${esc(state.settings.currencyName)}`}
+                  </div>
+                  ${nextTier ? `
+                    <div class="dq-ach-next-hint">다음 단계: ${nextTier.target}${ch.unit} → +${nextTier.reward} ${esc(state.settings.currencyName)}</div>
+                  ` : ""}
+                </div>
+                <div style="flex-shrink:0">
+                  ${allMastered
+                    ? `<span class="dq-done-stamp">👑 마스터</span>`
+                    : claimable
+                    ? `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-ach" data-aid="${a.id}">🪙 +${a.reward}</button>`
+                    : `<span style="font-size:12px;color:var(--mut);font-weight:800">진행중</span>`
+                  }
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+        ${ui.showCompletedAch && completedList.length > 0 ? `
+          <section class="dq-ach-archive">
+            <div class="dq-ach-archive-head">✅ 완료한 업적 기록 (${completedList.length}개)</div>
+            <div class="dq-ach-archive-grid">
+              ${completedList.map(a => `
+                <div class="dq-ach-mini-done">
+                  <span style="font-size:18px">${a.icon}</span>
+                  <div>
+                    <strong>${esc(a.title)}</strong>
+                    <small>${esc(a.chainLabel)} · +${a.reward} ${esc(state.settings.currencyName)}</small>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        ` : ""}
       </main>
     `;
   }
@@ -3033,10 +3175,12 @@
       const useVar = ui.parkVariantMode === "variant" ? canVar : ui.parkVariantMode === "base" ? false : (selDino ? isDinoUsingVariant(selDino.id) : false);
       const selName = selDino ? getDinoDisplayNick(selDino, useVar) : "공룡";
       const habLabel = selDino ? getHabitatLabel(selDino.id) : "";
+      const selAff = selDino ? getDinoAffinity(selDino.id) : 0;
       return `
         <span class="dq-park-move-active">
           🐾 <b>${esc(selName)}</b> 선택됨! 가고 싶은 곳을 톡 눌러보세요
           ${habLabel ? `<span class="dq-park-habitat-pill">갈 수 있는 곳: ${habLabel}</span>` : ""}
+          ${selDino ? `<button class="dq-park-mini-feed" data-act="open-feed-dino" data-did="${selDino.id}">🍖 먹이주기 (❤️${selAff})</button>` : ""}
           <button class="dq-park-mini-cancel" data-act="park-deselect">✕ 선택 해제</button>
         </span>
       `;
@@ -3491,6 +3635,7 @@
             <b style="color:var(--gold-hi)">${tickets}장</b>
           </div>
           <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
+            <button class="dq-btn dq-btn-green dq-btn-sm" data-act="open-feed-dino" data-did="${ui.parkSelectedDinoId || state.partnerDino}">🍖 먹이주기</button>
             <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="park-view" data-val="museum">🏛️ 화석 박물관</button>
             <button class="dq-btn dq-btn-gold dq-btn-sm ${tickets > 0 ? "pulse" : ""}" data-act="open-dig" data-free="0">⛏️ 화석 발굴 (${tickets})</button>
           </div>
@@ -3506,6 +3651,7 @@
             </div>
           ` : ""}
           <div style="display:flex;gap:8px;margin-left:auto;flex-wrap:wrap">
+            <button class="dq-btn dq-btn-green dq-btn-sm" data-act="open-feed-dino" data-did="${ui.parkSelectedDinoId || state.partnerDino}">🍖 먹이주기</button>
             <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="open-wardrobe">👔 공룡 꾸미기</button>
           </div>
         `}
@@ -3593,10 +3739,14 @@
               ${complete ? `
                 <div style="margin-top:10px;display:flex;justify-content:center">
                   ${rewardClaimed
-                    ? `<span class="dq-done-stamp">🏛️ 완성 보상 +${f.reward} 수령 완료</span>`
-                    : `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-fossil-reward" data-fid="${f.id}">🏆 전시 완성 보상 +${f.reward} ${esc(state.settings.currencyName)}!</button>`}
+                    ? `<span class="dq-done-stamp">🏛️ 완성 보상 +${f.reward} · ❤️+3 수령 완료</span>`
+                    : `<button class="dq-btn dq-btn-gold dq-btn-sm pulse" data-act="claim-fossil-reward" data-fid="${f.id}">🏆 완성 보상 +${f.reward} ${esc(state.settings.currencyName)} · ❤️+3!</button>`}
                 </div>
-              ` : ""}
+              ` : `
+                <div class="dq-museum-reward-preview">
+                  🎁 완성 보상: +${f.reward} ${esc(state.settings.currencyName)} · ❤️ 호감도 +3 · 🏆 업적
+                </div>
+              `}
             </article>
           `;
         }).join("")}
@@ -3608,34 +3758,11 @@
     const fossilOn = isFossilEnabled();
     const ownedSet = new Set(state.fossilParts || []);
     const fossils = PARK ? PARK.FOSSILS : [];
-    const totalParts = PARK ? PARK.ALL_PART_KEYS.length : 30;
     const completedCount = fossils.filter(f => f.parts.every(p => ownedSet.has(`${f.id}:${p.key}`))).length;
     const claimableMuseumCount = getClaimableFossilCount();
-    const tickets = Number(state.digTickets) || 0;
 
     return `
-      <main>
-        ${fossilOn ? `
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px">
-            <div class="dq-subtabs" style="margin-bottom:0">
-              <button class="dq-subtab ${ui.parkView === "diorama" ? "on" : ""}" data-act="park-view" data-val="diorama">
-                🏞️ 내 쥬라기 공원 (${getUnlockedDinoCount()}/${DINOS.length})
-              </button>
-              <button class="dq-subtab ${ui.parkView === "museum" ? "on" : ""}" data-act="park-view" data-val="museum">
-                🏛️ 화석 박물관 (${ownedSet.size}/${totalParts})${claimableMuseumCount > 0 ? ` 🎁` : ""}
-              </button>
-            </div>
-
-            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-              <div style="display:flex;align-items:center;gap:7px;background:var(--s1);border:1.5px solid var(--bd);border-radius:14px;padding:7px 12px;font-size:12.5px;font-weight:800">
-                <span>⛏️ 발굴권 <b style="color:var(--gold-hi)">${tickets}장</b></span>
-                <button class="dq-btn dq-btn-gold dq-btn-sm ${tickets > 0 ? "pulse" : ""}" data-act="open-dig" data-free="0">발굴 시작!</button>
-                ${DEV_UNLOCK_ALL ? `<button class="dq-boss-dev-btn" data-act="open-dig" data-free="1">🔧 무료 테스트</button>` : ""}
-              </div>
-            </div>
-          </div>
-        ` : ""}
-
+      <main class="dq-park-main">
         ${fossilOn && ui.parkView === "museum"
           ? renderParkMuseumView(ownedSet, completedCount)
           : renderParkDioramaView(ownedSet, completedCount, claimableMuseumCount)}
@@ -3751,12 +3878,12 @@
         <div class="dq-modal-backdrop" data-act="close-review-gate">
           <div class="dq-modal">
             <div class="dq-modal-head">
-              <h3>👆 부모님 확인 (2초 꾹 누르기)</h3>
+              <h3>👆 부모님 확인</h3>
               <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="close-review-gate">닫기</button>
             </div>
             <div class="dq-modal-body" style="text-align:center">
               <div style="font-size:13.5px;color:var(--tx2);font-weight:700;margin-bottom:14px">
-                비밀번호 노출 없이, 부모님이 아래 버튼을 2초간 꾹 누르면 숙제 확인 창이 열려요!
+                부모님이 아래 버튼을 2초간 꾹 눌러 확인해 주세요.
               </div>
               <button id="dq-hold-unlock-btn" class="dq-hold-btn" type="button">
                 <div id="dq-hold-fill" class="dq-hold-fill" style="width:0%"></div>
@@ -3775,12 +3902,12 @@
       <div class="dq-modal-backdrop" data-act="close-review-gate">
         <div class="dq-modal">
           <div class="dq-modal-head">
-            <h3>🧮 부모님 확인 (어른 암산 잠금)</h3>
+            <h3>🧮 부모님 확인</h3>
             <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="close-review-gate">닫기</button>
           </div>
           <div class="dq-modal-body" style="text-align:center">
             <div style="font-size:13px;color:var(--tx2);font-weight:700">
-              매번 바뀌는 계산 문제로 비밀번호 노출을 막아요! 정답을 입력하면 바로 열립니다.
+              부모님이 아래 문제를 풀고 확인해 주세요.
             </div>
             <div class="dq-math-problem-box">
               <span class="dq-math-expr">${g.a} × ${g.b} =</span>
@@ -4027,11 +4154,93 @@
             </div>
             <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
               <button class="dq-btn dq-btn-sky" data-act="roar-dino" data-did="${d.id}">🔊 실제 울음소리 듣기</button>
+              <button class="dq-btn dq-btn-gold" data-act="open-feed-dino" data-did="${d.id}">🍖 먹이주기</button>
               ${isPartner
                 ? `<div class="dq-done-stamp" style="justify-content:center">⭐ 현재 파트너</div>`
                 : `<button class="dq-btn dq-btn-green" data-act="set-partner" data-did="${d.id}" data-variant="${showVar ? "1" : "0"}">⭐ 파트너로 설정</button>`
               }
             </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderFeedDinoModal() {
+    if (!ui.feedDinoId) return "";
+    const unlockedDinos = DINOS.filter(d => isDinoUnlocked(d.id));
+    const d = isDinoUnlocked(ui.feedDinoId) ? getDino(ui.feedDinoId) : (unlockedDinos[0] || getDino(state.partnerDino));
+    if (!d) return "";
+    const varUnlocked = isVariantUnlocked(d.id);
+    const useVar = isDinoUsingVariant(d.id);
+    const aff = getDinoAffinity(d.id);
+    const affPct = Math.min(100, Math.round((aff / VARIANT_AFFINITY_NEED) * 100));
+
+    return `
+      <div class="dq-modal-backdrop" data-act="close-feed-dino">
+        <div class="dq-modal">
+          <div class="dq-modal-head">
+            <h3>🍖 공룡 먹이주기</h3>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="dq-stat-pill coin" style="font-size:14px;padding:5px 10px">
+                ${coinSVG(18)} <span>${state.coins.toLocaleString()}</span>
+              </span>
+              <button class="dq-btn dq-btn-ghost dq-btn-sm" data-act="close-feed-dino">닫기</button>
+            </div>
+          </div>
+          <div class="dq-modal-body">
+            ${unlockedDinos.length > 1 ? `
+              <div class="dq-feed-dino-pills">
+                ${unlockedDinos.map(item => {
+                  const iVar = isDinoUsingVariant(item.id);
+                  return `
+                    <button class="dq-mini-dino-btn ${item.id === d.id ? "on" : ""}" data-act="feed-select-dino" data-did="${item.id}">
+                      <img src="${item.sprite}" alt="${esc(item.nick)}" ${iVar && item.variant ? `style="filter:${item.variant.filter}"` : ""} />
+                      <span>${iVar ? "✨" : ""}${esc(item.nick)}</span>
+                    </button>
+                  `;
+                }).join("")}
+              </div>
+            ` : ""}
+
+            <div class="dq-feed-hero">
+              <div class="dq-feed-avatar">
+                ${renderDinoArt(d, { unlocked: true, equipped: state.partnerDino === d.id ? state.equippedGear : {}, mood: ui.dinoMood, variant: useVar })}
+              </div>
+              <div class="dq-feed-meta">
+                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px">
+                  <span style="font-family:'Jua','Noto Sans KR',sans-serif;font-size:20px;color:#fff">${esc(getDinoDisplayName(d, useVar))}</span>
+                  <span style="font-size:11.5px;color:var(--teal);font-weight:800">${esc(d.diet)}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:800;color:var(--tx2);margin-bottom:4px">
+                  <span>❤️ 호감도 ${aff}</span>
+                  <span style="color:var(--gold-hi)">${varUnlocked ? "✨ 스페셜 변이 해금 완료!" : `변이 해금까지 ${Math.max(0, VARIANT_AFFINITY_NEED - aff)} 남음`}</span>
+                </div>
+                <div class="dq-bar" style="height:7px">
+                  <div class="dq-bar-fill gold" style="width:${varUnlocked ? 100 : affPct}%"></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dq-feed-grid">
+              ${DINO_FOODS.map(food => {
+                const canAfford = state.coins >= food.cost;
+                return `
+                  <button class="dq-feed-card" data-act="feed-dino-item" data-did="${d.id}" data-fid="${food.id}" ${canAfford ? "" : "disabled"}>
+                    <span class="dq-feed-ico">${food.icon}</span>
+                    <span class="dq-feed-name">${esc(food.name)}</span>
+                    <span class="dq-feed-gain">❤️ 호감도 +${food.affinity}</span>
+                    <span class="dq-feed-price">${coinSVG(15)} ${food.cost}</span>
+                  </button>
+                `;
+              }).join("")}
+            </div>
+
+            ${ui.feedSpeech
+              ? `<div class="dq-feed-speech">${esc(ui.feedSpeech)}</div>`
+              : `<div style="margin-top:10px;text-align:center;font-size:12px;color:var(--mut);font-weight:700">
+                  ${esc(state.settings.currencyName)}으로 맛있는 간식을 사주면 공룡 호감도가 쑥쑥 올라가요!
+                </div>`}
           </div>
         </div>
       </div>
@@ -4882,6 +5091,7 @@
     else if (ui.tab === "shop") mainView = renderShopTab();
     else if (ui.tab === "dinos") mainView = renderDinosTab();
     else if (ui.tab === "park") mainView = renderParkTab();
+    else if (ui.tab === "achievements") mainView = renderAchievementsTab();
 
     root.innerHTML = `
       <div class="dq-app">
@@ -4896,6 +5106,7 @@
       ${renderRejectModal()}
       ${renderHatchModal()}
       ${renderDinoDetailModal()}
+      ${renderFeedDinoModal()}
       ${renderDigModal()}
       ${renderDevMailboxModal()}
     `;
@@ -4920,7 +5131,6 @@
           clearParkMoveTimers();
         }
         ui.tab = btn.dataset.val;
-        if (ui.tab === "dinos" && ui.dinoSubTab === "wardrobe") markGearSeen();
         render();
         break;
 
@@ -4928,15 +5138,43 @@
         sfx.tap();
         ui.tab = "dinos";
         ui.dinoSubTab = "wardrobe";
-        markGearSeen();
         render();
         break;
 
       case "dino-sub":
         sfx.tap();
         ui.dinoSubTab = btn.dataset.val;
-        if (ui.dinoSubTab === "wardrobe") markGearSeen();
         render();
+        break;
+
+      case "open-feed-dino": {
+        sfx.tap();
+        const did = btn.dataset.did || state.partnerDino;
+        ui.dinoDetailId = null;
+        ui.feedDinoId = isDinoUnlocked(did) ? did : state.partnerDino;
+        ui.feedSpeech = "";
+        render();
+        break;
+      }
+
+      case "close-feed-dino":
+        sfx.tap();
+        ui.feedDinoId = null;
+        ui.feedSpeech = "";
+        render();
+        break;
+
+      case "feed-select-dino":
+        sfx.tap();
+        if (isDinoUnlocked(btn.dataset.did)) {
+          ui.feedDinoId = btn.dataset.did;
+          ui.feedSpeech = "";
+          render();
+        }
+        break;
+
+      case "feed-dino-item":
+        feedDino(btn.dataset.did, btn.dataset.fid, btn);
         break;
 
       case "gear-slot":
@@ -4960,6 +5198,7 @@
         if (!state.equippedGear) state.equippedGear = { head: null, face: null, back: null, hand: null, aura: null, stage: null };
         const wasOn = state.equippedGear[item.slot] === gid;
         state.equippedGear[item.slot] = wasOn ? null : gid;
+        if (!wasOn) markSingleGearSeen(gid);
         saveState();
         if (wasOn) {
           sfx.tap();

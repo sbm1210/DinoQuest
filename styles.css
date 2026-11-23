@@ -82,7 +82,7 @@ button {
     radial-gradient(820px 500px at 90% 0%, rgba(251, 191, 36, 0.13), transparent 58%),
     radial-gradient(600px 500px at 50% 110%, rgba(45, 212, 191, 0.08), transparent 60%),
     var(--bg);
-  padding: calc(10px + env(safe-area-inset-top)) 18px calc(24px + env(safe-area-inset-bottom));
+  padding: calc(8px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
   max-width: 1320px;
   margin: 0 auto;
 }
@@ -94,22 +94,22 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  padding: 6px 2px 14px;
+  gap: 8px;
+  padding: 2px 2px 10px;
   flex-wrap: wrap;
 }
 
 .dq-brand {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
   min-width: 0;
 }
 
 .dq-logo-badge {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
   background: linear-gradient(145deg, #22c55e, #0f766e);
   border: 2px solid rgba(254, 240, 138, 0.45);
   box-shadow: 0 6px 18px -6px rgba(34, 197, 94, 0.65), inset 0 2px 4px rgba(255, 255, 255, 0.28);
@@ -125,25 +125,25 @@ button {
 .dq-title {
   font-family: 'Outfit', 'Jua', sans-serif;
   font-weight: 900;
-  font-size: 22px;
-  letter-spacing: 0.4px;
+  font-size: 19px;
+  letter-spacing: 0.3px;
   line-height: 1.05;
   background: linear-gradient(90deg, #ffffff 10%, #fef08a 65%, #4ade80 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 .dq-subtitle {
-  font-size: 12.5px;
+  font-size: 11px;
   color: var(--tx2);
   font-weight: 700;
   margin-top: 2px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .dq-rank-pill {
-  font-size: 10.5px;
-  padding: 2px 7px;
+  font-size: 10px;
+  padding: 1px 6px;
   border-radius: 99px;
   background: rgba(45, 212, 191, 0.16);
   border: 1px solid rgba(45, 212, 191, 0.35);
@@ -155,11 +155,11 @@ button {
 .dq-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   background: var(--s1);
   border: 1px solid var(--bd);
-  border-radius: 15px;
-  padding: 4px;
+  border-radius: 14px;
+  padding: 3px;
 }
 
 .dq-nav-btn {
@@ -167,14 +167,14 @@ button {
   border: none;
   background: transparent;
   color: var(--mut);
-  font-size: 14px;
+  font-size: 12.5px;
   font-weight: 800;
-  padding: 9px 15px;
-  border-radius: 11px;
+  padding: 7px 9px;
+  border-radius: 10px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   transition: 0.18s;
   white-space: nowrap;
 }
@@ -209,20 +209,20 @@ button {
 .dq-hud-right {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .dq-stat-pill {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
-  padding: 7px 13px;
-  border-radius: 14px;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 12px;
   background: var(--s1);
   border: 1.5px solid var(--bd);
   font-family: 'Outfit', 'Noto Sans KR', sans-serif;
   font-weight: 800;
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1;
   transition: transform 0.2s;
 }
@@ -250,19 +250,19 @@ button {
 
 .dq-icon-btn {
   position: relative;
-  height: 42px;
-  min-width: 42px;
-  padding: 0 12px;
-  border-radius: 13px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 9px;
+  border-radius: 11px;
   border: 1.5px solid var(--bd-hi);
   background: var(--s1);
   color: #e2f6ee;
-  font-size: 13.5px;
+  font-size: 12.5px;
   font-weight: 800;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 5px;
   cursor: pointer;
   transition: 0.16s;
 }
@@ -308,22 +308,32 @@ button {
 
 @media (min-width: 900px) {
   .dq-dashboard {
-    grid-template-columns: 420px 1fr;
-    gap: 18px;
+    grid-template-columns: 410px 1fr;
+    gap: 14px;
+  }
+  .dq-dashboard > .dq-col {
+    gap: 12px;
+  }
+  .dq-dashboard > .dq-col:last-child {
+    max-height: calc(100dvh - 70px);
+    overflow-y: auto;
+    padding-right: 2px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 163, 150, 0.35) transparent;
   }
 }
 
 @media (min-width: 1120px) {
   .dq-dashboard {
-    grid-template-columns: 450px 1fr;
-    gap: 20px;
+    grid-template-columns: 435px 1fr;
+    gap: 16px;
   }
 }
 
 .dq-col {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   min-width: 0;
 }
 
@@ -332,7 +342,7 @@ button {
   background: linear-gradient(180deg, rgba(26, 51, 45, 0.72), rgba(16, 33, 29, 0.92));
   border: 1.5px solid var(--bd);
   border-radius: var(--r-lg);
-  padding: 16px;
+  padding: 13px 15px;
   box-shadow: var(--shadow-card);
   position: relative;
 }
@@ -342,11 +352,11 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
+  margin-bottom: 9px;
 }
 .dq-card-title h2 {
   margin: 0;
-  font-size: 16.5px;
+  font-size: 16px;
   font-weight: 900;
   display: flex;
   align-items: center;
@@ -362,18 +372,18 @@ button {
     radial-gradient(280px 180px at 18% 55%, rgba(74, 222, 128, 0.18), transparent 70%),
     linear-gradient(160deg, #17332b, #0f211d);
   border-color: rgba(74, 222, 128, 0.3);
-  padding: 14px 16px;
+  padding: 11px 14px;
 }
 
 .dq-partner-top {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
 }
 
 .dq-partner-avatar {
-  width: 106px;
-  height: 106px;
+  width: 90px;
+  height: 90px;
   border-radius: 20px;
   background: radial-gradient(circle at 50% 42%, rgba(45, 212, 191, 0.16), rgba(4, 12, 10, 0.8));
   border: 2px solid rgba(251, 191, 36, 0.42);
@@ -884,17 +894,17 @@ button {
 
 /* Egg Incubator Bar inside Partner Card */
 .dq-egg-strip {
-  margin-top: 12px;
-  padding-top: 12px;
+  margin-top: 9px;
+  padding-top: 9px;
   border-top: 1px dashed rgba(127, 163, 150, 0.25);
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
 }
 
 .dq-egg-mini {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -962,10 +972,10 @@ button {
 .dq-cal-weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
-  margin-bottom: 6px;
+  gap: 4px;
+  margin-bottom: 4px;
   text-align: center;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
   color: var(--mut);
 }
@@ -975,13 +985,13 @@ button {
 .dq-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 5px;
+  gap: 4px;
 }
 
 .dq-cal-cell {
   position: relative;
-  aspect-ratio: 1 / 1.04;
-  border-radius: 12px;
+  min-height: 44px;
+  border-radius: 10px;
   border: 1.5px solid rgba(40, 76, 67, 0.65);
   background: rgba(11, 24, 21, 0.65);
   color: var(--tx2);
@@ -989,7 +999,7 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 5px 3px 4px;
+  padding: 4px 2px 3px;
   cursor: pointer;
   transition: 0.15s;
 }
@@ -1071,9 +1081,9 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  margin-top: 10px;
-  font-size: 11.5px;
+  gap: 12px;
+  margin-top: 7px;
+  font-size: 11px;
   color: var(--mut);
   font-weight: 600;
   flex-wrap: wrap;
@@ -1240,18 +1250,18 @@ button {
 .dq-quest-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
 .dq-quest {
   background: linear-gradient(180deg, rgba(25, 49, 43, 0.85), rgba(18, 36, 32, 0.96));
   border: 1.5px solid var(--bd);
-  border-radius: 16px;
-  padding: 13px 14px;
+  border-radius: 15px;
+  padding: 10px 13px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 11px;
   transition: 0.2s;
   position: relative;
 }
@@ -1504,6 +1514,14 @@ button {
   background: rgba(251, 191, 36, 0.16);
   border: 1px solid rgba(251, 191, 36, 0.44);
   color: var(--gold-hi);
+}
+
+.dq-boss-battle-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  align-items: center;
+  margin-top: 4px;
 }
 
 .dq-boss-arena {
@@ -3002,16 +3020,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 10px;
-  padding: 10px 14px;
-  border-radius: 15px;
+  margin-bottom: 8px;
+  padding: 7px 12px;
+  border-radius: 14px;
   background: rgba(14, 30, 26, 0.78);
   border: 1.5px solid var(--bd);
 }
 .dq-park-hint {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--tx2);
   transition: color 0.15s ease;
@@ -3027,11 +3045,23 @@ button {
 .dq-park-move-active {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
   color: var(--gold-hi);
   font-weight: 800;
 }
+.dq-park-mini-feed {
+  border: 1px solid rgba(74, 222, 128, 0.6);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.32), rgba(21, 128, 61, 0.25));
+  color: #dcfce7;
+  font-size: 11.5px;
+  font-weight: 900;
+  padding: 3px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.14s ease;
+}
+.dq-park-mini-feed:active { transform: scale(0.94); }
 .dq-park-mini-cancel {
   border: 1px solid rgba(251, 191, 36, 0.55);
   background: rgba(251, 191, 36, 0.16);
@@ -3045,10 +3075,11 @@ button {
 .dq-park-mini-cancel:active { transform: scale(0.94); }
 .dq-park-stage {
   position: relative;
-  width: 100%;
+  width: min(100%, calc((100dvh - 226px) * 16 / 9));
+  margin: 0 auto;
   aspect-ratio: 16 / 9;
-  min-height: 280px;
-  border-radius: 22px;
+  min-height: 240px;
+  border-radius: 20px;
   overflow: hidden;
   border: 2px solid rgba(52, 211, 153, 0.38);
   box-shadow: 0 18px 42px -16px rgba(0, 0, 0, 0.85), inset 0 0 0 1px rgba(255, 255, 255, 0.14);
@@ -3255,6 +3286,8 @@ button {
     transform var(--move-dur, 650ms) ease;
 }
 .dq-park-dino-inner {
+  position: relative;
+  z-index: 2;
   width: 100%;
   height: 100%;
   transition: transform 0.2s ease, filter 0.2s ease;
@@ -3273,10 +3306,10 @@ button {
 }
 .dq-park-select-ring {
   position: absolute;
-  bottom: 8%;
+  bottom: 4%;
   left: 50%;
   width: 82%;
-  height: 24%;
+  height: 22%;
   transform: translateX(-50%) scale(0.7);
   border-radius: 50%;
   border: 2.5px solid #fef08a;
@@ -3284,7 +3317,7 @@ button {
   box-shadow: 0 0 14px rgba(251, 191, 36, 0.85), inset 0 0 8px rgba(254, 240, 138, 0.55);
   opacity: 0;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;
   transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .dq-park-dino.selected .dq-park-select-ring {
@@ -3595,9 +3628,9 @@ button {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 12px;
-  padding: 12px 15px;
-  border-radius: 16px;
+  margin-top: 8px;
+  padding: 8px 13px;
+  border-radius: 14px;
   background: linear-gradient(180deg, rgba(22, 44, 39, 0.85), rgba(12, 26, 23, 0.95));
   border: 1.5px solid var(--bd);
 }
@@ -4251,6 +4284,290 @@ button {
   font-size: 13px;
 }
 
+/* ============================================================================
+   NEW GEAR BADGE, DINO FEEDING MODAL & FOSSIL REWARD PREVIEW
+   ============================================================================ */
+.dq-gear-card.is-new {
+  border-color: rgba(251, 191, 36, 0.78);
+  box-shadow: 0 0 18px -6px rgba(251, 191, 36, 0.65), inset 0 0 0 1px rgba(254, 240, 138, 0.22);
+}
+.dq-gear-new-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, #fb7185, #f59e0b);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  box-shadow: 0 3px 10px rgba(244, 63, 94, 0.55);
+  z-index: 4;
+  animation: dq-pop 1.5s infinite ease-in-out;
+}
+.dq-slot-new-dot {
+  display: inline-block;
+  margin-left: 3px;
+  padding: 0 5px;
+  border-radius: 99px;
+  background: linear-gradient(135deg, #fb7185, #f59e0b);
+  color: #fff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 9.5px;
+  font-weight: 900;
+  line-height: 15px;
+  vertical-align: middle;
+}
+
+/* Dinosaur Feeding Modal */
+.dq-feed-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(150deg, rgba(22, 51, 43, 0.9), rgba(11, 24, 21, 0.95));
+  border: 1.5px solid rgba(52, 211, 153, 0.35);
+  border-radius: 16px;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+}
+.dq-feed-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 45%, rgba(45, 212, 191, 0.2), rgba(6, 15, 13, 0.78));
+  border: 1.5px solid rgba(251, 191, 36, 0.45);
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+}
+.dq-feed-meta {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.dq-feed-dino-pills {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  scrollbar-width: thin;
+}
+.dq-feed-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.dq-feed-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 12px 10px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, rgba(26, 51, 45, 0.85), rgba(13, 28, 24, 0.95));
+  border: 1.5px solid var(--bd-hi);
+  color: var(--tx);
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.16s ease, box-shadow 0.16s ease;
+  text-align: center;
+}
+.dq-feed-card:hover:not(:disabled) {
+  border-color: var(--gold);
+  box-shadow: 0 8px 20px -10px rgba(251, 191, 36, 0.55);
+}
+.dq-feed-card:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.dq-feed-card:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+.dq-feed-ico {
+  font-size: 34px;
+  line-height: 1.1;
+}
+.dq-feed-name {
+  font-size: 13.5px;
+  font-weight: 900;
+  color: #fff;
+}
+.dq-feed-gain {
+  font-size: 12px;
+  font-weight: 900;
+  color: #fda4af;
+  background: rgba(244, 63, 94, 0.18);
+  border: 1px solid rgba(251, 113, 133, 0.4);
+  border-radius: 99px;
+  padding: 2px 9px;
+}
+.dq-feed-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+  font-size: 13.5px;
+  font-weight: 900;
+  color: var(--gold-hi);
+}
+.dq-feed-speech {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: rgba(251, 191, 36, 0.14);
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  color: var(--gold-hi);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.dq-museum-reward-preview {
+  margin-top: 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  color: var(--gold-hi);
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px dashed rgba(251, 191, 36, 0.35);
+  border-radius: 10px;
+  padding: 5px 9px;
+  text-align: center;
+}
+
+/* Landscape Single-Screen Compact Boss Raid & Quests */
+@media (min-width: 900px) {
+  .dq-boss-battle-row {
+    grid-template-columns: 256px 1fr;
+    gap: 12px;
+  }
+  .dq-boss-card {
+    padding: 10px 14px;
+  }
+  .dq-boss-card .dq-card-title {
+    margin-bottom: 5px;
+  }
+  .dq-boss-arena {
+    padding: 7px 9px 6px;
+    margin-top: 0;
+    border-radius: 14px;
+    gap: 4px;
+  }
+  .dq-arena-hero-art {
+    width: 62px;
+    height: 62px;
+  }
+  .dq-arena-boss-art {
+    width: 66px;
+    height: 66px;
+  }
+  .dq-boss-sprite {
+    width: 64px;
+    height: 64px;
+  }
+  .dq-wait-banner {
+    margin-top: 7px;
+    padding: 7px 11px;
+  }
+  .dq-fighter-tag {
+    font-size: 10.5px;
+    padding: 1px 7px;
+  }
+  .dq-boss-hud {
+    margin-top: 0;
+  }
+  .dq-boss-hp-head {
+    margin-bottom: 4px;
+  }
+  .dq-boss-name-row strong {
+    font-size: 15.5px;
+  }
+  .dq-boss-hp-track {
+    height: 12px;
+  }
+  .dq-boss-quote {
+    margin-top: 5px;
+    padding: 4px 8px;
+    font-size: 11.5px;
+  }
+  .dq-boss-dmg-guide {
+    margin-top: 5px;
+    gap: 6px;
+    font-size: 10.5px;
+  }
+  .dq-boss-subquests {
+    margin-top: 7px;
+    padding-top: 7px;
+  }
+  .dq-boss-subquests .dq-quest-list {
+    margin-top: 5px;
+  }
+  .dq-quest {
+    padding: 8px 12px;
+  }
+  .dq-q-cat {
+    width: 38px;
+    height: 38px;
+    font-size: 19px;
+  }
+  .dq-q-title {
+    font-size: 14.5px;
+  }
+  .dq-q-detail {
+    font-size: 11.5px;
+  }
+  .dq-chest-bar {
+    margin-top: 7px;
+    padding: 7px 11px;
+  }
+  .dq-chest-txt strong {
+    font-size: 13px;
+  }
+  .dq-chest-txt span {
+    font-size: 11px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dq-daily-quest-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .dq-daily-quest-grid > .dq-empty {
+    grid-column: 1 / -1;
+  }
+  .dq-daily-quest-grid .dq-quest {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .dq-daily-quest-grid .dq-q-cat {
+    width: 34px;
+    height: 34px;
+    font-size: 17px;
+    border-radius: 10px;
+  }
+  .dq-daily-quest-grid .dq-q-title {
+    font-size: 13.5px;
+  }
+  .dq-daily-quest-grid .dq-q-detail {
+    font-size: 11px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .dq-daily-quest-grid .dq-btn {
+    padding: 7px 10px;
+    font-size: 12px;
+  }
+  .dq-daily-quest-grid .dq-waiting-pill {
+    font-size: 11px;
+    padding: 5px 8px;
+  }
+}
+
 /* Portrait / Smaller Screen Tuning */
 @media (max-width: 720px) {
   .dq-app { padding-left: 12px; padding-right: 12px; }
@@ -4261,4 +4578,5 @@ button {
   .dq-q-action { width: 100%; flex-direction: row; justify-content: flex-end; }
   .dq-timer-float { left: 12px; right: 12px; bottom: 12px; min-width: 0; }
   .dq-admin-reply-row { flex-direction: column; align-items: stretch; }
+  .dq-feed-grid { grid-template-columns: 1fr; }
 }
