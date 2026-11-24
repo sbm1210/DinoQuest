@@ -33,6 +33,19 @@
   --r-md: 14px;
   --r-sm: 10px;
   --shadow-card: 0 12px 30px -14px rgba(0, 0, 0, 0.65);
+
+  /* Top clearance: iPadOS 26+ standalone PWA draws a ~67px progressive status-bar blur */
+  --app-top-pad: calc(8px + env(safe-area-inset-top, 0px));
+}
+
+@media (display-mode: standalone) {
+  :root {
+    --app-top-pad: max(76px, calc(44px + env(safe-area-inset-top, 0px)));
+  }
+}
+
+html.dq-standalone {
+  --app-top-pad: max(76px, calc(44px + env(safe-area-inset-top, 0px)));
 }
 
 * {
@@ -82,7 +95,7 @@ button {
     radial-gradient(820px 500px at 90% 0%, rgba(251, 191, 36, 0.13), transparent 58%),
     radial-gradient(600px 500px at 50% 110%, rgba(45, 212, 191, 0.08), transparent 60%),
     var(--bg);
-  padding: calc(8px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+  padding: var(--app-top-pad) 16px calc(12px + env(safe-area-inset-bottom));
   max-width: 1320px;
   margin: 0 auto;
 }
@@ -315,7 +328,7 @@ button {
     gap: 12px;
   }
   .dq-dashboard > .dq-col:last-child {
-    max-height: calc(100dvh - 70px);
+    max-height: calc(100dvh - var(--app-top-pad) - 64px - env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     padding-right: 2px;
     scrollbar-width: thin;
@@ -617,7 +630,7 @@ button {
     grid-template-columns: 356px 1fr;
     gap: 16px;
     align-items: stretch;
-    height: calc(100dvh - 140px);
+    height: calc(100dvh - var(--app-top-pad) - 132px - env(safe-area-inset-bottom, 0px));
     min-height: 460px;
   }
   .dq-wardrobe-stage {
@@ -652,14 +665,14 @@ button {
   .dq-collection-pane {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 134px);
+    height: calc(100dvh - var(--app-top-pad) - 126px - env(safe-area-inset-bottom, 0px));
     min-height: 440px;
     overflow: hidden;
   }
   .dq-museum-pane {
     display: flex;
     flex-direction: column;
-    height: calc(100dvh - 76px);
+    height: calc(100dvh - var(--app-top-pad) - 68px - env(safe-area-inset-bottom, 0px));
     min-height: 440px;
     overflow: hidden;
   }
@@ -2535,14 +2548,14 @@ button {
   -webkit-backdrop-filter: blur(6px);
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: calc(var(--app-top-pad) + 8px) 16px calc(16px + env(safe-area-inset-bottom, 0px));
   z-index: 1000;
 }
 
 .dq-modal {
   width: 100%;
   max-width: 440px;
-  max-height: 90dvh;
+  max-height: calc(100dvh - var(--app-top-pad) - 24px - env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, #162c27, #0e1e1a);
   border: 1.5px solid var(--bd-hi);
   border-radius: 22px;
@@ -3165,7 +3178,7 @@ button {
 .dq-park-mini-cancel:active { transform: scale(0.94); }
 .dq-park-stage {
   position: relative;
-  width: min(100%, calc((100dvh - 226px) * 16 / 9));
+  width: min(100%, calc((100dvh - var(--app-top-pad) - 218px - env(safe-area-inset-bottom, 0px)) * 16 / 9));
   margin: 0 auto;
   aspect-ratio: 16 / 9;
   min-height: 240px;
