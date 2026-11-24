@@ -2,7 +2,7 @@
    DINO QUEST · Offline PWA Service Worker (Cache-First with Background Update)
    ============================================================================ */
 
-const CACHE_NAME = "dinoquest-cache-v50";
+const CACHE_NAME = "dinoquest-cache-v51";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
@@ -10,12 +10,12 @@ const PRECACHE_ASSETS = [
   "./icon.svg",
   "./icon-180.png",
   "./icon-512.png",
-  "./styles.css?v=50",
-  "./gear.js?v=50",
-  "./dinos.js?v=50",
-  "./park.js?v=50",
-  "./sound.js?v=50",
-  "./app.js?v=50",
+  "./styles.css?v=51",
+  "./gear.js?v=51",
+  "./dinos.js?v=51",
+  "./park.js?v=51",
+  "./sound.js?v=51",
+  "./app.js?v=51",
   "./assets/sprites/park/park_diorama.jpg",
   "./assets/sprites/fossils/fossil_trex_bp.png?v=33",
   "./assets/sprites/fossils/fossil_trex_head.png?v=33",
@@ -85,6 +85,10 @@ const PRECACHE_ASSETS = [
   "./assets/sprites/bosses/shadow_rex.png",
   "./assets/sprites/bosses/frost_titan.png",
   "./assets/sprites/bosses/mecha_rex.png",
+  "./assets/sprites/bosses/arena_meteor_golem.jpg",
+  "./assets/sprites/bosses/arena_shadow_rex.jpg",
+  "./assets/sprites/bosses/arena_frost_titan.jpg",
+  "./assets/sprites/bosses/arena_mecha_rex.jpg",
   "./assets/sprites/stages/stage_jungle.png",
   "./assets/sprites/stages/stage_volcano.png",
   "./assets/sprites/stages/stage_glacier.png",

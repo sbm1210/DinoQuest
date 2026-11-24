@@ -1042,6 +1042,7 @@ window.DINO_DATA = (function () {
       color: "#f97316",
       accent: "#a855f7",
       bg: "radial-gradient(240px 140px at 78% 42%, rgba(249, 115, 22, 0.28), transparent 72%), radial-gradient(200px 120px at 22% 55%, rgba(168, 85, 247, 0.22), transparent 72%), linear-gradient(135deg, rgba(35, 19, 26, 0.94), rgba(16, 20, 32, 0.96))",
+      arenaBg: "./assets/sprites/bosses/arena_meteor_golem.jpg",
       sprite: "./assets/sprites/bosses/meteor_golem.png",
       lines: {
         full: "크르릉… 이번 주 숙제를 다 깨기 전엔 내가 여길 지킨다!",
@@ -1058,6 +1059,7 @@ window.DINO_DATA = (function () {
       color: "#c084fc",
       accent: "#f43f5e",
       bg: "radial-gradient(240px 140px at 78% 42%, rgba(192, 132, 252, 0.28), transparent 72%), radial-gradient(200px 120px at 22% 55%, rgba(244, 63, 94, 0.16), transparent 72%), linear-gradient(135deg, rgba(28, 16, 46, 0.95), rgba(14, 18, 30, 0.96))",
+      arenaBg: "./assets/sprites/bosses/arena_shadow_rex.jpg",
       sprite: "./assets/sprites/bosses/shadow_rex.png",
       lines: {
         full: "크아앙! 누가 감히 내 어둠의 협곡에 도전하느냐!",
@@ -1074,6 +1076,7 @@ window.DINO_DATA = (function () {
       color: "#38bdf8",
       accent: "#22d3ee",
       bg: "radial-gradient(240px 140px at 78% 42%, rgba(56, 189, 248, 0.26), transparent 72%), radial-gradient(200px 120px at 22% 55%, rgba(34, 211, 238, 0.18), transparent 72%), linear-gradient(135deg, rgba(12, 30, 48, 0.95), rgba(10, 22, 34, 0.96))",
+      arenaBg: "./assets/sprites/bosses/arena_frost_titan.jpg",
       sprite: "./assets/sprites/bosses/frost_titan.png",
       lines: {
         full: "쉬이이익… 얼음 파도처럼 차가운 시련을 이겨낼 수 있을까?",
@@ -1090,6 +1093,7 @@ window.DINO_DATA = (function () {
       color: "#f87171",
       accent: "#fbbf24",
       bg: "radial-gradient(240px 140px at 78% 42%, rgba(239, 68, 68, 0.26), transparent 72%), radial-gradient(200px 120px at 22% 55%, rgba(251, 191, 36, 0.16), transparent 72%), linear-gradient(135deg, rgba(36, 18, 24, 0.95), rgba(16, 22, 30, 0.96))",
+      arenaBg: "./assets/sprites/bosses/arena_mecha_rex.jpg",
       sprite: "./assets/sprites/bosses/mecha_rex.png",
       lines: {
         full: "삐빅- 목표 확인! 이번 주 퀘스트 파워를 측정한다!",

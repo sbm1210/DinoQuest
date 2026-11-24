@@ -2423,6 +2423,7 @@
 
     const arenaClasses = [
       "dq-boss-arena",
+      boss.arenaBg ? "has-bg" : "",
       isAttacking ? "attacking" : "",
       isAttacking && bb.isCrit ? "crit" : "",
       isAttacking && bb.isKO ? "ko-hit" : "",
@@ -2524,7 +2525,7 @@
         </div>
 
         <div class="dq-boss-battle-row">
-          <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg}">
+          <div id="dq-boss-arena" class="${arenaClasses}" data-week="${weekKey}" style="background:${boss.bg};${boss.arenaBg ? `--arena-bg-img:url('${boss.arenaBg}')` : ""}">
             <div class="dq-arena-fighter hero">
               <div class="dq-arena-hero-art">
                 ${renderDinoArt(partner, { size: 104, equipped: getDinoGear(partner.id), mood: isAttacking ? "jump" : "idle", showStage: false, variant: isDinoUsingVariant(partner.id) })}
