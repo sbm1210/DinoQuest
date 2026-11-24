@@ -1987,12 +1987,20 @@ button {
 
 .dq-boss-dmg-guide {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 6px 10px;
   margin-top: 8px;
 }
 
-.dq-boss-dmg-guide span {
+.dq-boss-dmg-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.dq-boss-dmg-chips > span {
   font-size: 11px;
   font-weight: 700;
   color: var(--mut);
@@ -2002,9 +2010,60 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.dq-boss-dmg-guide b {
+.dq-boss-dmg-chips b {
   color: #fde047;
   font-weight: 900;
+}
+
+.dq-boss-reward-preview {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(251, 191, 36, 0.14), rgba(180, 83, 9, 0.09));
+  border: 1px solid rgba(251, 191, 36, 0.34);
+  font-size: 11px;
+  font-weight: 700;
+  color: #fef3c7;
+}
+
+.dq-boss-reward-preview.claimed {
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(52, 211, 153, 0.32);
+  color: #a7f3d0;
+  opacity: 0.85;
+}
+
+.dq-boss-reward-lbl {
+  color: var(--gold-hi);
+  font-weight: 800;
+}
+
+.dq-boss-reward-preview.claimed .dq-boss-reward-lbl {
+  color: #6ee7b7;
+}
+
+.dq-boss-reward-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.dq-boss-reward-item .dq-inline-coin {
+  vertical-align: 0;
+}
+
+.dq-boss-reward-item b {
+  color: #fff;
+  font-weight: 900;
+}
+
+.dq-boss-reward-item.coin b {
+  color: var(--gold-hi);
 }
 
 .dq-boss-victory-bar {

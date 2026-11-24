@@ -2580,9 +2580,17 @@
             </div>
 
             <div class="dq-boss-dmg-guide">
-              <span>⚔️ 일일 <b>-${BOSS_DMG.daily}</b></span>
-              <span>💥 올클 <b>-${BOSS_DMG.allClear}</b></span>
-              <span>🔥 보스퀘 <b>-${BOSS_DMG.boss}</b></span>
+              <div class="dq-boss-dmg-chips">
+                <span>⚔️ 일일 <b>-${BOSS_DMG.daily}</b></span>
+                <span>💥 올클 <b>-${BOSS_DMG.allClear}</b></span>
+                <span>🔥 보스퀘 <b>-${BOSS_DMG.boss}</b></span>
+              </div>
+              <div class="dq-boss-reward-preview${raid.defeated && raid.rewardClaimed ? " claimed" : ""}">
+                <span class="dq-boss-reward-lbl">🏆 토벌 보상</span>
+                ${bossBonus > 0 ? `<span class="dq-boss-reward-item coin">${coinIcon(12)}<b>+${bossBonus}</b></span>` : ""}
+                <span class="dq-boss-reward-item">🥚 <b>알 +1</b></span>
+                ${isFossilEnabled() ? `<span class="dq-boss-reward-item">⛏️ <b>발굴권 +2</b></span>` : ""}
+              </div>
             </div>
           </div>
         </div>
