@@ -45,9 +45,9 @@
   function isDinoUsingVariant(did, s = state) {
     return Boolean(s.activeVariants && s.activeVariants[did]) && isVariantUnlocked(did, s);
   }
-  const GEAR_SLOT_KEYS = ["head", "face", "back", "hand", "aura", "stage"];
+  const GEAR_SLOT_KEYS = ["head", "face", "back", "hand", "aura", "stage", "pet"];
   function emptyGearSlots() {
-    return { head: null, face: null, back: null, hand: null, aura: null, stage: null };
+    return { head: null, face: null, back: null, hand: null, aura: null, stage: null, pet: null };
   }
   function normalizeGearObj(obj) {
     const out = emptyGearSlots();
@@ -1424,10 +1424,17 @@
     render();
   }
 
+  const DEFAULT_PARENT_NOTE = "지섭아! 숙제 다 끝내고 엄마·아빠 불러줘 🦖";
+
   function getPartnerSpeechHtml() {
     const partner = getDino(state.partnerDino);
     const todaySum = getDaySummary(todayStr());
     const waitingCount = getAllWaitingItems().length;
+    const rawNote = (state.settings.parentNote || "").trim();
+    const hasCustomParentNote = Boolean(rawNote) && rawNote !== DEFAULT_PARENT_NOTE;
+    const partnerGear = getDinoGear(partner.id);
+    const activeSet = GEAR && typeof GEAR.getPrimaryActiveSet === "function" ? GEAR.getPrimaryActiveSet(partnerGear) : null;
+
     if (ui.dinoSpeechOverride) {
       return esc(ui.dinoSpeechOverride);
     } else if (state.pendingEggs > 0) {
@@ -1438,8 +1445,15 @@
       return `오늘 퀘스트 올클리어!! 정말 멋져 ${esc(state.settings.childName)}&nbsp;탐험가!&nbsp;🎉`;
     } else if (todaySum.approved > 0) {
       return `부모님이 확인 완료했대! 반짝이는 보상 버튼을 눌러봐!&nbsp;<span class="dq-inline-coin">${coinSVG(15)}</span>`;
-    } else if (state.settings.parentNote && state.settings.parentNote.trim()) {
-      return `<span class="dq-speech-parent-tag">💌 부모님 말씀</span>${esc(state.settings.parentNote)}`;
+    } else if (hasCustomParentNote) {
+      return `<span class="dq-speech-parent-tag">💌 부모님 말씀</span>${esc(rawNote)}`;
+    } else if (activeSet && Array.isArray(activeSet.speeches) && activeSet.speeches.length > 0) {
+      const childName = state.settings.childName || "탐험가";
+      const idx = (new Date().getDate() + new Date().getHours()) % activeSet.speeches.length;
+      const line = String(activeSet.speeches[idx]).replace(/지섭/g, childName);
+      return esc(line);
+    } else if (rawNote) {
+      return `<span class="dq-speech-parent-tag">💌 부모님 말씀</span>${esc(rawNote)}`;
     }
     return esc(partner.cheer[0]);
   }
@@ -2204,13 +2218,16 @@
     const eggStage = state.pendingEggs > 0 ? 3 : state.eggProgress >= need - 1 && need > 1 ? 2 : state.eggProgress > 0 ? 1 : 0;
     const speechHtml = getPartnerSpeechHtml();
     const newGearCnt = getNewGearIds().length;
+    const partnerGear = getDinoGear(partner.id);
+    const activeSet = GEAR && typeof GEAR.getPrimaryActiveSet === "function" ? GEAR.getPrimaryActiveSet(partnerGear) : null;
     const avatarCls = ui.dinoMood === "roar" ? "roaring" : ui.dinoMood === "jump" ? "happy" : "";
+    const avatarSetStyle = activeSet ? `style="--set-col:${activeSet.color};--set-glow:${activeSet.glow || "rgba(251,191,36,0.5)"}"` : "";
 
     return `
       <section class="dq-card dq-partner-card">
         <div class="dq-partner-top">
-          <div class="dq-partner-avatar ${avatarCls}" data-act="pet-dino" title="눌러서 공룡 포효 듣기!">
-            ${renderDinoArt(partner, { unlocked: true, equipped: getDinoGear(partner.id), mood: ui.dinoMood, variant: useVar })}
+          <div class="dq-partner-avatar ${avatarCls} ${activeSet ? "has-set" : ""}" ${avatarSetStyle} data-act="pet-dino" title="눌러서 공룡 포효 듣기!">
+            ${renderDinoArt(partner, { unlocked: true, equipped: partnerGear, mood: ui.dinoMood, variant: useVar })}
             <span class="dq-avatar-sound-badge" aria-hidden="true">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
             </span>
@@ -2221,6 +2238,9 @@
               ${useVar && partner.variant
                 ? `<span class="dq-variant-pill" style="--v-col:${partner.variant.color}">${esc(partner.variant.badge)}</span>`
                 : `<span class="dq-rarity-tag ${partner.rarity}">${partner.rarityLabel}</span>`}
+              ${activeSet
+                ? `<span class="dq-set-pill" style="--set-col:${activeSet.color};--set-glow:${activeSet.glow}">${activeSet.icon} ${esc(activeSet.name)}</span>`
+                : ""}
             </div>
             <div class="dq-speech">${speechHtml}</div>
           </div>
@@ -2860,24 +2880,39 @@
     const unlockedIds = new Set(GEAR.getUnlockedGearIds(state, streak));
     const newGearSet = new Set(getNewGearIds());
     const ownedOnly = Boolean(state.settings.gearOwnedOnly);
-    const slotItems = ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot);
-    const slotOwnedCount = slotItems.filter(it => unlockedIds.has(it.id)).length;
+    const isSetTab = ui.gearSlot === "sets";
+    const allSets = Array.isArray(GEAR.SETS) ? GEAR.SETS : [];
+    const activeSets = typeof GEAR.getActiveSets === "function" ? GEAR.getActiveSets(curGear) : [];
+    const activeSet = activeSets[0] || null;
+    const activeSetIds = new Set(activeSets.map(st => st.id));
+    const completableSetCount = allSets.filter(st => st.items.every(id => unlockedIds.has(id))).length;
+    const filteredSets = ownedOnly ? allSets.filter(st => st.items.every(id => unlockedIds.has(id))) : allSets;
+    const slotItems = isSetTab ? [] : (ui.gearSlot === "all" ? GEAR.ITEMS : GEAR.ITEMS.filter(it => it.slot === ui.gearSlot));
+    const slotOwnedCount = isSetTab ? completableSetCount : slotItems.filter(it => unlockedIds.has(it.id)).length;
     const filtered = ownedOnly ? slotItems.filter(it => unlockedIds.has(it.id)) : slotItems;
     const equippedCount = Object.values(curGear || {}).filter(Boolean).length;
+    const previewSetStyle = activeSet
+      ? `style="--set-col:${activeSet.color};--set-glow:${activeSet.glow || "rgba(251,191,36,0.5)"}"`
+      : "";
 
     return `
       <div class="dq-wardrobe-layout">
         <section class="dq-wardrobe-stage">
-          <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:4px;flex-wrap:wrap">
             <span style="font-family:'Jua','Noto Sans KR',sans-serif;font-size:21px;color:#fff">${esc(getDinoDisplayName(partner, useVar))}</span>
             ${useVar && partner.variant
               ? `<span class="dq-variant-pill" style="--v-col:${partner.variant.color}">${esc(partner.variant.badge)}</span>`
               : `<span class="dq-rarity-tag ${partner.rarity}">${partner.rarityLabel}</span>`}
+            ${activeSet
+              ? `<span class="dq-set-pill" style="--set-col:${activeSet.color};--set-glow:${activeSet.glow}">${activeSet.icon} ${esc(activeSet.name)}</span>`
+              : ""}
           </div>
           <div style="font-size:12px;color:var(--mut);font-weight:700;margin-bottom:6px">
-            공룡을 누르면 입을 벌리고 실제 울음소리로 포효해요!
+            ${activeSet
+              ? `✨ <b style="color:${activeSet.color}">${esc(activeSet.name)}</b> 세트 코디 발동 중!`
+              : "공룡을 누르면 입을 벌리고 실제 울음소리로 포효해요!"}
           </div>
-          <div class="dq-wardrobe-preview" data-act="roar-dino" data-did="${partner.id}">
+          <div class="dq-wardrobe-preview ${activeSet ? "has-set" : ""}" ${previewSetStyle} data-act="roar-dino" data-did="${partner.id}">
             ${renderDinoArt(partner, { unlocked: true, equipped: curGear, mood: ui.dinoMood, variant: useVar })}
           </div>
 
@@ -2899,7 +2934,7 @@
             ` : ""}
           ` : ""}
 
-          <div style="display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin-top:10px">
+          <div class="dq-wardrobe-actions">
             <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="roar-dino" data-did="${partner.id}">🔊 포효!</button>
             <button class="dq-btn dq-btn-green dq-btn-sm" data-act="jump-dino">⚡ 점프!</button>
             <button class="dq-btn dq-btn-gold dq-btn-sm" data-act="open-feed-dino" data-did="${partner.id}">🍖 먹이주기</button>
@@ -2911,9 +2946,9 @@
               const eqId = curGear?.[sl.id];
               const eqItem = eqId ? GEAR.getItem(eqId) : null;
               return `
-                <div class="dq-slot-chip ${eqItem ? "filled" : ""}">
+                <div class="dq-slot-chip ${eqItem ? "filled" : ""} ${sl.id === "pet" ? "slot-wide" : ""}">
                   <span>${sl.icon} ${sl.label}</span>
-                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:115px">
+                  <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:${sl.id === "pet" ? "180px" : "115px"}">
                     ${eqItem ? esc(eqItem.name) : "없음"}
                   </span>
                 </div>
@@ -2949,6 +2984,9 @@
               <button class="dq-day-pill ${ui.gearSlot === "all" ? "on" : ""}" data-act="gear-slot" data-val="all">
                 전체${ownedOnly ? ` <span class="dq-slot-cnt">${unlockedIds.size}</span>` : ""}${newGearSet.size > 0 ? `<span class="dq-slot-new-dot">N</span>` : ""}
               </button>
+              <button class="dq-day-pill dq-pill-sets ${isSetTab ? "on" : ""} ${activeSet ? "has-active-set" : ""}" data-act="gear-slot" data-val="sets">
+                ✨ 세트${completableSetCount > 0 ? ` <span class="dq-slot-cnt">${completableSetCount}/${allSets.length}</span>` : ""}
+              </button>
               ${GEAR.SLOTS.map(sl => {
                 const slOwned = GEAR.ITEMS.filter(it => it.slot === sl.id && unlockedIds.has(it.id)).length;
                 const slNew = GEAR.ITEMS.filter(it => it.slot === sl.id && newGearSet.has(it.id)).length;
@@ -2962,18 +3000,78 @@
           </div>
           <div class="dq-gear-toolbar">
             <div class="dq-gear-subnote">
-              숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 <span class="dq-inline-coin">${coinSVG(14)}</span>)
+              ${isSetTab
+                ? "테마별 3종을 함께 착용하면 전용 칭호·반짝임·특별 대사가 발동해요! (순수 꾸미기)"
+                : `숙제·연속 달성·도감 수집으로 장비가 자동 해금돼요! (현실 선물용 ${esc(state.settings.currencyName)}은 전혀 쓰지 않아요 <span class="dq-inline-coin">${coinSVG(14)}</span>)`}
             </div>
             <button type="button" role="checkbox" aria-checked="${ownedOnly ? "true" : "false"}"
               class="dq-owned-chk ${ownedOnly ? "on" : ""}" data-act="toggle-gear-owned">
               <span class="dq-chk-box" aria-hidden="true">${ownedOnly ? "✓" : ""}</span>
-              <span>보유한 장비만 보기</span>
+              <span>${isSetTab ? "완성 가능한 세트만" : "보유한 장비만 보기"}</span>
               <small>(${slotOwnedCount})</small>
             </button>
           </div>
 
           <div class="dq-scroll-body dq-gear-scroll">
-          ${filtered.length === 0
+          ${isSetTab
+            ? (filteredSets.length === 0
+                ? `<div class="dq-empty" style="padding:32px 16px">
+                    <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:6px">🔒 아직 3종을 모두 모은 세트가 없어요</div>
+                    <div style="font-size:12.5px;color:var(--mut);margin-bottom:14px">체크를 해제하면 어떤 조합으로 세트를 만들 수 있는지 미리 볼 수 있어요!</div>
+                    <button class="dq-btn dq-btn-sky dq-btn-sm" data-act="toggle-gear-owned">✨ 전체 세트 보기</button>
+                  </div>`
+                : `<div class="dq-set-grid">
+                    ${filteredSets.map(st => {
+                      const parts = st.items.map(id => GEAR.getItem(id)).filter(Boolean);
+                      const ownedCnt = parts.filter(it => unlockedIds.has(it.id)).length;
+                      const canEquip = ownedCnt === parts.length;
+                      const isActive = activeSetIds.has(st.id);
+                      const sampleLine = String(st.speeches?.[0] || "").replace(/지섭/g, state.settings.childName || "탐험가");
+                      return `
+                        <article class="dq-set-card ${isActive ? "active" : ""} ${canEquip ? "ready" : "incomplete"}"
+                          style="--set-col:${st.color};--set-glow:${st.glow}">
+                          <div class="dq-set-card-head">
+                            <div class="dq-set-title-wrap">
+                              <span class="dq-set-icon">${st.icon}</span>
+                              <div>
+                                <div class="dq-set-name">${esc(st.name)}</div>
+                                <div class="dq-set-sub">${isActive ? "✨ 세트 발동 중!" : canEquip ? "3/3 완성 가능!" : `${ownedCnt}/${parts.length} 보유 · ${parts.length - ownedCnt}개 더 모으면 완성!`}</div>
+                              </div>
+                            </div>
+                            ${isActive
+                              ? `<span class="dq-set-status-badge on">✓ 발동 중</span>`
+                              : canEquip
+                                ? `<span class="dq-set-status-badge ready">완성 가능</span>`
+                                : `<span class="dq-set-status-badge">${ownedCnt}/${parts.length}</span>`}
+                          </div>
+                          <div class="dq-set-parts">
+                            ${parts.map(it => {
+                              const unlocked = unlockedIds.has(it.id);
+                              const equipped = curGear?.[it.slot] === it.id;
+                              return `
+                                <button type="button" class="dq-set-part ${unlocked ? "unlocked" : "locked"} ${equipped ? "equipped" : ""}"
+                                  data-act="${unlocked ? "toggle-gear" : "set-part-info"}" data-gid="${it.id}"
+                                  title="${unlocked ? (equipped ? "착용 중 (눌러서 해제)" : "눌러서 착용") : `🔒 ${it.condText}`}">
+                                  <div class="dq-set-part-thumb">${renderGearThumb(it)}</div>
+                                  <span class="dq-set-part-name">${esc(it.name)}</span>
+                                  <span class="dq-set-part-state">${equipped ? "✓ 착용" : unlocked ? "보유" : "🔒 잠김"}</span>
+                                </button>
+                              `;
+                            }).join("")}
+                          </div>
+                          <div class="dq-set-quote">“${esc(sampleLine)}”</div>
+                          <div class="dq-set-card-foot">
+                            ${isActive
+                              ? `<button class="dq-btn dq-btn-ghost dq-btn-sm" style="width:100%" data-act="unequip-set" data-sid="${st.id}">🔄 세트 해제</button>`
+                              : canEquip
+                                ? `<button class="dq-btn dq-btn-gold dq-btn-sm" style="width:100%" data-act="equip-set" data-sid="${st.id}">✨ 한 번에 입기!</button>`
+                                : `<button class="dq-btn dq-btn-ghost dq-btn-sm" style="width:100%" disabled>🔒 잠긴 파츠를 누르면 해금 조건을 볼 수 있어요</button>`}
+                          </div>
+                        </article>
+                      `;
+                    }).join("")}
+                  </div>`)
+            : filtered.length === 0
             ? `<div class="dq-empty" style="padding:32px 16px">
                 <div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:6px">🔒 이 부위에는 아직 보유한 장비가 없어요</div>
                 <div style="font-size:12.5px;color:var(--mut);margin-bottom:14px">체크를 해제하면 어떤 숙제로 해금할 수 있는지 미리 볼 수 있어요!</div>
@@ -2986,6 +3084,7 @@
                   const isNew = unlocked && !equipped && newGearSet.has(it.id);
                   const cur = it.target > 0 ? Math.min(it.target, it.metric(state, streak)) : 1;
                   const pct = it.target > 0 ? Math.min(100, Math.round((cur / it.target) * 100)) : 100;
+                  const itemSets = typeof GEAR.getItemSets === "function" ? GEAR.getItemSets(it.id) : [];
                   return `
                     <div class="dq-gear-card ${unlocked ? "" : "locked"} ${equipped ? "equipped" : ""} ${isNew ? "is-new" : ""}"
                       ${unlocked ? `data-act="toggle-gear" data-gid="${it.id}"` : ""}>
@@ -2995,7 +3094,10 @@
                           ? `<span class="dq-gear-new-badge">NEW</span>`
                           : ""}
                       <div class="dq-gear-preview-box">${renderGearThumb(it)}</div>
-                      <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
+                      <div class="dq-gear-tag-row">
+                        <span class="dq-rarity-tag ${it.rarity}">${{ common: "일반", rare: "희귀", legendary: "전설" }[it.rarity] || "일반"}</span>
+                        ${itemSets.map(st => `<span class="dq-gear-set-tag" style="--set-col:${st.color}">${st.icon} ${esc(st.shortName || st.name)}</span>`).join("")}
+                      </div>
                       <div style="font-size:14.5px;font-weight:900;color:#fff">${esc(it.name)}</div>
                       ${unlocked
                         ? `<div style="font-size:11.5px;color:${equipped ? "var(--gold-hi)" : "var(--emerald-hi)"};font-weight:800">
@@ -3334,6 +3436,17 @@
       ...(d.fact ? [d.fact] : [])
     ].map(raw => String(raw || "").replace(/지섭/g, childName));
     const base = [...staticBase];
+    const dGear = getDinoGear(d.id);
+    const dActiveSet = GEAR && typeof GEAR.getPrimaryActiveSet === "function" ? GEAR.getPrimaryActiveSet(dGear) : null;
+    if (dActiveSet && Array.isArray(dActiveSet.speeches)) {
+      for (const sl of dActiveSet.speeches) {
+        base.push(String(sl).replace(/지섭/g, childName));
+      }
+    }
+    const dPet = dGear.pet && GEAR ? GEAR.getItem(dGear.pet) : null;
+    if (dPet) {
+      base.push(`내 단짝 ${dPet.name}랑 함께 탐험하니까 더 신나! 🐾`);
+    }
     if (context === "park") {
       if (ui.parkTime === "day") {
         base.push(
@@ -3360,7 +3473,7 @@
       if (state.partnerDino === d.id) {
         base.push(`나는 ${childName}의 든든한 파트너 공룡이야! ⭐`);
       }
-      if (Object.values(getDinoGear(d.id)).some(Boolean)) {
+      if (Object.values(dGear).some(Boolean)) {
         base.push("내 장비 어때? 멋있게 꾸며줘서 고마워! 👑");
       }
       const spot = getParkDinoSpot(d.id);
@@ -3703,18 +3816,20 @@
           const useVar = ui.parkVariantMode === "variant" ? canVar : ui.parkVariantMode === "base" ? false : isDinoUsingVariant(d.id);
           const hasBubble = ui.parkBubble && ui.parkBubble.dinoId === d.id;
           const bubblePosCls = hasBubble ? getParkBubblePosClasses(spot) : "";
+          const dGear = getDinoGear(d.id);
+          const dActiveSet = GEAR && typeof GEAR.getPrimaryActiveSet === "function" ? GEAR.getPrimaryActiveSet(dGear) : null;
           const zIdx = Math.round(spot.y) + (hasBubble ? 40 : 0) + (isSelected ? 20 : 0);
           return `
-            <div class="dq-park-dino motion-${spot.motion} ${isPartner ? "is-partner" : ""} ${isSelected ? "selected" : ""} ${hasBubble ? "talking" : ""}"
-              style="left:${spot.x}%;top:${spot.y}%;z-index:${zIdx};--p-scale:${spot.s};--p-delay:${(idx * 0.42).toFixed(2)}s"
+            <div class="dq-park-dino motion-${spot.motion} ${isPartner ? "is-partner" : ""} ${dActiveSet ? "has-set" : ""} ${isSelected ? "selected" : ""} ${hasBubble ? "talking" : ""}"
+              style="left:${spot.x}%;top:${spot.y}%;z-index:${zIdx};--p-scale:${spot.s};--p-delay:${(idx * 0.42).toFixed(2)}s${dActiveSet ? `;--set-col:${dActiveSet.color};--set-glow:${dActiveSet.glow}` : ""}"
               data-act="park-tap-dino" data-did="${d.id}">
               ${hasBubble ? `<div class="dq-park-bubble ${bubblePosCls}">${esc(ui.parkBubble.text)}</div>` : ""}
               ${isPartner ? `<span class="dq-park-star">⭐</span>` : ""}
               <span class="dq-park-select-ring" aria-hidden="true"></span>
               <div class="dq-park-dino-inner ${spot.flip ? "flip" : ""}">
-                ${renderDinoArt(d, { unlocked: true, equipped: getDinoGear(d.id), showStage: false, variant: useVar, mood: hasBubble ? "jump" : "idle" })}
+                ${renderDinoArt(d, { unlocked: true, equipped: dGear, showStage: false, variant: useVar, mood: hasBubble ? "jump" : "idle" })}
               </div>
-              <span class="dq-park-name-tag">${useVar ? "✨" : ""}${esc(getDinoDisplayNick(d, useVar))}</span>
+              <span class="dq-park-name-tag">${dActiveSet ? `${dActiveSet.icon} ` : ""}${useVar ? "✨" : ""}${esc(getDinoDisplayNick(d, useVar))}</span>
             </div>
           `;
         }).join("")}
@@ -5324,20 +5439,96 @@
         if (!GEAR.isItemUnlocked(item, state, computeStreak(state))) break;
         const targetDid = getWardrobeDinoId();
         const gear = ensureDinoGear(targetDid);
+        const prevActiveIds = new Set((typeof GEAR.getActiveSets === "function" ? GEAR.getActiveSets(gear) : []).map(s => s.id));
         const wasOn = gear[item.slot] === gid;
         gear[item.slot] = wasOn ? null : gid;
         if (targetDid === state.partnerDino) state.equippedGear = { ...gear };
         if (!wasOn) markSingleGearSeen(gid);
         saveState();
+        const nextActive = typeof GEAR.getActiveSets === "function" ? GEAR.getActiveSets(gear) : [];
+        const newlyActivated = !wasOn ? nextActive.find(s => !prevActiveIds.has(s.id)) : null;
         if (wasOn) {
           sfx.tap();
           showToast(`${item.icon} ${item.name} 해제`);
+        } else if (newlyActivated) {
+          sfx.fanfare();
+          const line = String(newlyActivated.speeches?.[0] || "").replace(/지섭/g, state.settings.childName || "탐험가");
+          triggerDinoMood("jump", line);
+          const pv = document.querySelector(".dq-wardrobe-preview");
+          if (pv) {
+            const r = pv.getBoundingClientRect();
+            burstConfetti(r.left + r.width / 2, r.top + r.height / 2, 30);
+          } else {
+            burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 30);
+          }
+          showToast(`✨ [${newlyActivated.icon} ${newlyActivated.name}] 세트 발동!!`, 2600);
         } else {
           sfx.approve();
           triggerDinoMood("jump");
           showToast(`✨ ${item.icon} ${item.name} 장착 완료!`);
         }
         render();
+        break;
+      }
+
+      case "equip-set": {
+        const sid = btn.dataset.sid;
+        const st = GEAR && typeof GEAR.getSet === "function" ? GEAR.getSet(sid) : null;
+        if (!st) break;
+        const streak = computeStreak(state);
+        const parts = st.items.map(id => GEAR.getItem(id)).filter(Boolean);
+        if (parts.length !== st.items.length || !parts.every(it => GEAR.isItemUnlocked(it, state, streak))) {
+          sfx.error();
+          showToast("🔒 아직 잠긴 세트 파츠가 있어요!");
+          break;
+        }
+        const targetDid = getWardrobeDinoId();
+        const gear = ensureDinoGear(targetDid);
+        for (const it of parts) {
+          gear[it.slot] = it.id;
+          markSingleGearSeen(it.id);
+        }
+        if (targetDid === state.partnerDino) state.equippedGear = { ...gear };
+        saveState();
+        sfx.fanfare();
+        const line = String(st.speeches?.[0] || "").replace(/지섭/g, state.settings.childName || "탐험가");
+        triggerDinoMood("jump", line);
+        const pv = document.querySelector(".dq-wardrobe-preview");
+        if (pv) {
+          const r = pv.getBoundingClientRect();
+          burstConfetti(r.left + r.width / 2, r.top + r.height / 2, 32);
+        } else {
+          burstConfetti(window.innerWidth / 2, window.innerHeight / 2, 32);
+        }
+        showToast(`✨ [${st.icon} ${st.name}] 세트 발동!!`, 2600);
+        render();
+        break;
+      }
+
+      case "unequip-set": {
+        const sid = btn.dataset.sid;
+        const st = GEAR && typeof GEAR.getSet === "function" ? GEAR.getSet(sid) : null;
+        if (!st) break;
+        const targetDid = getWardrobeDinoId();
+        const gear = ensureDinoGear(targetDid);
+        for (const id of st.items) {
+          const it = GEAR.getItem(id);
+          if (it && gear[it.slot] === id) gear[it.slot] = null;
+        }
+        if (targetDid === state.partnerDino) state.equippedGear = { ...gear };
+        saveState();
+        sfx.tap();
+        showToast(`${st.icon} ${st.name} 세트 해제`);
+        render();
+        break;
+      }
+
+      case "set-part-info": {
+        const gid = btn.dataset.gid;
+        const item = GEAR ? GEAR.getItem(gid) : null;
+        if (!item) break;
+        sfx.tap();
+        showToast(`🔒 ${item.icon} ${item.name} — ${item.condText}`, 2600);
         break;
       }
 

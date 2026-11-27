@@ -1,6 +1,7 @@
 /* ============================================================================
-   DINO QUEST · 3D Stylized RPG Equipment System (43 Items across 6 Slots)
-   - 31 studio-grade 3D transparent PNG gear sprites + 6 animated SVG auras + 6 scenic stages
+   DINO QUEST · 3D Stylized RPG Equipment System (49 Items across 7 Slots + 8 Sets)
+   - 31 studio-grade 3D transparent PNG gear sprites + 6 mini-pet companions
+     + 6 animated SVG auras + 6 scenic stages + 8 pure-cosmetic equipment sets
    - Unlocked automatically via quests, all-clears, streaks, bosses, and dino collection!
    ============================================================================ */
 
@@ -11,7 +12,8 @@ window.DINO_GEAR = (function () {
     { id: "back", label: "등·날개", icon: "🎒" },
     { id: "hand", label: "손·무기", icon: "⚔️" },
     { id: "aura", label: "오라", icon: "🔥" },
-    { id: "stage", label: "무대", icon: "🏞️" }
+    { id: "stage", label: "무대", icon: "🏞️" },
+    { id: "pet", label: "펫", icon: "🐾" }
   ];
 
   const ITEMS = [
@@ -630,13 +632,230 @@ window.DINO_GEAR = (function () {
       metric: s => (s.totalQuestsClaimed >= 60 ? 3 : (s.totalBossDefeats || 0)),
       sprite: "./assets/sprites/stages/stage_temple.png",
       tint: "rgba(251, 191, 36, 0.42)"
+    },
+
+    /* ===================== PET (미니 펫 · 동반자 · 6종) ===================== */
+    {
+      id: "pet_ptero",
+      slot: "pet",
+      name: "아기 익룡 피코",
+      icon: "🪽",
+      rarity: "common",
+      condText: "일일 올클리어 2회 달성",
+      target: 2,
+      metric: s => s.totalAllClears,
+      sprite: "./assets/sprites/pets/pet_ptero.png",
+      glow: "rgba(45, 212, 191, 0.55)"
+    },
+    {
+      id: "pet_egg",
+      slot: "pet",
+      name: "알껍질 아기 공룡",
+      icon: "🥚",
+      rarity: "common",
+      condText: "퀘스트 8개 완료",
+      target: 8,
+      metric: s => s.totalQuestsClaimed,
+      sprite: "./assets/sprites/pets/pet_egg.png",
+      glow: "rgba(74, 222, 128, 0.55)"
+    },
+    {
+      id: "pet_drone",
+      slot: "pet",
+      name: "미니 화석 드론",
+      icon: "🤖",
+      rarity: "rare",
+      condText: "퀘스트 18개 완료 (또는 공룡 3마리)",
+      target: 18,
+      metric: s => (s.unlockedDinos.length >= 3 ? 18 : s.totalQuestsClaimed),
+      sprite: "./assets/sprites/pets/pet_drone.png",
+      glow: "rgba(56, 189, 248, 0.6)"
+    },
+    {
+      id: "pet_flame",
+      slot: "pet",
+      name: "호박 불꽃 정령",
+      icon: "🔥",
+      rarity: "rare",
+      condText: "5일 연속 올클리어 (또는 퀘스트 25개)",
+      target: 5,
+      metric: (s, st) => (s.totalQuestsClaimed >= 25 ? 5 : Math.max(s.bestStreak, st)),
+      sprite: "./assets/sprites/pets/pet_flame.png",
+      glow: "rgba(251, 146, 60, 0.65)"
+    },
+    {
+      id: "pet_star",
+      slot: "pet",
+      name: "은하수 꼬마별",
+      icon: "🌟",
+      rarity: "rare",
+      condText: "공룡 도감 5마리 수집 (또는 퀘스트 40개)",
+      target: 5,
+      metric: s => (s.totalQuestsClaimed >= 40 ? 5 : s.unlockedDinos.length),
+      sprite: "./assets/sprites/pets/pet_star.png",
+      glow: "rgba(192, 132, 252, 0.65)"
+    },
+    {
+      id: "pet_dragon",
+      slot: "pet",
+      name: "황금 미니 드래곤",
+      icon: "🐉",
+      rarity: "legendary",
+      condText: "퀘스트 70개 완료 (또는 공룡 9마리)",
+      target: 70,
+      metric: s => (s.unlockedDinos.length >= 9 ? 70 : s.totalQuestsClaimed),
+      sprite: "./assets/sprites/pets/pet_dragon.png",
+      glow: "rgba(251, 191, 36, 0.72)"
+    }
+  ];
+
+  /* ===================== EQUIPMENT SETS (장비 세트 효과 · 8종 · 순수 꾸미기) ===================== */
+  const SETS = [
+    {
+      id: "set_explorer",
+      name: "쥬라기 탐험대",
+      shortName: "탐험대",
+      icon: "🧭",
+      color: "#34d399",
+      glow: "rgba(52, 211, 153, 0.52)",
+      items: ["hat_explorer", "face_goggles", "back_pack"],
+      speeches: [
+        "탐험 장비 풀세팅 완료! 오늘 숙제 정글도 씩씩하게 돌파하자! 🧭",
+        "나침반 확인 끝! 지섭 탐험가, 오늘의 보물을 찾으러 출동! 🎒",
+        "고글 쓰고 준비 완료~ 어떤 어려운 문제도 다 찾아낼 수 있어! 🥽"
+      ]
+    },
+    {
+      id: "set_pirate",
+      name: "대해적 선장",
+      shortName: "대해적",
+      icon: "🏴‍☠️",
+      color: "#f59e0b",
+      glow: "rgba(245, 158, 11, 0.56)",
+      items: ["hat_pirate", "face_eyepatch", "back_treasure"],
+      speeches: [
+        "요호호! 오늘 숙제 보물상자도 싹쓸이해 볼까, 선원 지섭! 🏴‍☠️",
+        "황금 보물이 가득한 섬이 보인다! 돛을 올려라~ 💰",
+        "대해적 선장 출동! 오늘의 퀘스트를 모두 정복하러 가자! ⚓"
+      ]
+    },
+    {
+      id: "set_ninja",
+      name: "불꽃 그림자 닌자",
+      shortName: "불꽃 닌자",
+      icon: "🥷",
+      color: "#fb7185",
+      glow: "rgba(251, 113, 133, 0.56)",
+      items: ["hat_bandana", "back_swords", "aura_flame"],
+      speeches: [
+        "슉슉! 불꽃 닌자의 번개 같은 집중력으로 숙제를 끝내보자! 🥷",
+        "화염 인술 발동! 잡생각은 날려버리고 초집중 모드~ 🔥",
+        "그림자처럼 조용하고 빠르게! 오늘 퀘스트 임무 완수하겠소! ⚔️"
+      ]
+    },
+    {
+      id: "set_wizard",
+      name: "별빛 대마법사",
+      shortName: "대마법사",
+      icon: "🧙",
+      color: "#c084fc",
+      glow: "rgba(192, 132, 252, 0.58)",
+      items: ["hat_wizard", "hand_staff", "aura_galaxy"],
+      speeches: [
+        "별빛 마법 주문 완료! 오늘 숙제도 순식간에 클리어~ ✨",
+        "지혜의 별빛이 지섭 탐험가를 비추고 있어! 머리가 맑아진다~ 🧙",
+        "은하수 마법 지팡이 뾰로롱! 어려운 문제도 술술 풀릴 거야! 🌌"
+      ]
+    },
+    {
+      id: "set_knight",
+      name: "전설의 기사단",
+      shortName: "기사단",
+      icon: "🛡️",
+      color: "#38bdf8",
+      glow: "rgba(56, 189, 248, 0.56)",
+      items: ["hat_knight", "back_cape", "back_shield"],
+      speeches: [
+        "기사단의 명예를 걸고! 오늘 숙제도 끝까지 멋지게 완수하자! 🛡️",
+        "단단한 황금 방패로 딴생각 완벽 방어! 집중 출격! ⚔️",
+        "붉은 망토 휘날리며 전진! 지섭 기사님, 준비되셨나요? 🦸"
+      ]
+    },
+    {
+      id: "set_hero",
+      name: "슈퍼 히어로",
+      shortName: "히어로",
+      icon: "🦸",
+      color: "#ef4444",
+      glow: "rgba(239, 68, 68, 0.56)",
+      items: ["face_mask", "back_cape", "aura_bolt"],
+      speeches: [
+        "번개 파워 충전 100%! 슈퍼 히어로 공룡 출동합니다! ⚡",
+        "히어로에겐 불가능한 숙제란 없지! 지섭, 함께 해내자! 🦸",
+        "짜릿한 스파크와 함께 초스피드 집중 타임 시작! 💥"
+      ]
+    },
+    {
+      id: "set_space",
+      name: "사이버 우주 레인저",
+      shortName: "우주 레인저",
+      icon: "🚀",
+      color: "#22d3ee",
+      glow: "rgba(34, 211, 238, 0.58)",
+      items: ["hat_astronaut", "face_visor", "back_jetpack"],
+      speeches: [
+        "우주 스캐너 가동! 오늘의 숙제 목표 포착 완료! 🚀",
+        "터보 제트팩 점화! 은하계 최고 속도로 퀘스트 클리어하자! 🛸",
+        "사이버 바이저 분석 결과: 지섭 탐험가의 실력은 우주 최강! ⚡"
+      ]
+    },
+    {
+      id: "set_dragon_king",
+      name: "황금 드래곤 제왕",
+      shortName: "드래곤 제왕",
+      icon: "👑",
+      color: "#fbbf24",
+      glow: "rgba(251, 191, 36, 0.65)",
+      items: ["hat_crown", "back_dragon_wings", "aura_star"],
+      speeches: [
+        "황금 왕관과 드래곤 날개의 위엄! 백악기의 진정한 제왕이 왔노라! 👑",
+        "전설의 황금 오라가 빛난다! 오늘도 완벽한 올클리어를 향해! 🐉",
+        "하늘을 지배하는 드래곤 제왕과 함께라면 어떤 퀘스트도 문제없어! ✨"
+      ]
     }
   ];
 
   const ITEM_MAP = new Map(ITEMS.map(i => [i.id, i]));
+  const SET_MAP = new Map(SETS.map(st => [st.id, st]));
+  const ITEM_TO_SETS = new Map();
+  for (const st of SETS) {
+    for (const gid of st.items) {
+      if (!ITEM_TO_SETS.has(gid)) ITEM_TO_SETS.set(gid, []);
+      ITEM_TO_SETS.get(gid).push(st);
+    }
+  }
 
   function getItem(id) {
     return ITEM_MAP.get(id) || null;
+  }
+
+  function getSet(id) {
+    return SET_MAP.get(id) || null;
+  }
+
+  function getItemSets(itemId) {
+    return ITEM_TO_SETS.get(itemId) || [];
+  }
+
+  function getActiveSets(equipped) {
+    if (!equipped || typeof equipped !== "object") return [];
+    const eqIds = new Set(Object.values(equipped).filter(Boolean));
+    return SETS.filter(st => st.items.every(id => eqIds.has(id)));
+  }
+
+  function getPrimaryActiveSet(equipped) {
+    const list = getActiveSets(equipped);
+    return list.length > 0 ? list[0] : null;
   }
 
   function isItemUnlocked(item, state, curStreak) {
@@ -691,5 +910,5 @@ window.DINO_GEAR = (function () {
     </linearGradient>
   `;
 
-  return { SLOTS, ITEMS, AURA_DEFS, getItem, isItemUnlocked, getUnlockedGearIds };
+  return { SLOTS, ITEMS, SETS, AURA_DEFS, getItem, getSet, getItemSets, getActiveSets, getPrimaryActiveSet, isItemUnlocked, getUnlockedGearIds };
 })();

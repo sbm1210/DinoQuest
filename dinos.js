@@ -870,6 +870,11 @@ window.DINO_DATA = (function () {
     const handItem = equipped.hand && GEAR ? GEAR.getItem(equipped.hand) : null;
     const headItem = equipped.head && GEAR ? GEAR.getItem(equipped.head) : null;
     const faceItem = equipped.face && GEAR ? GEAR.getItem(equipped.face) : null;
+    const showPet = opts.showPet !== false;
+    const petItem = showPet && equipped.pet && GEAR ? GEAR.getItem(equipped.pet) : null;
+    const activeSet = unlocked && GEAR && typeof GEAR.getPrimaryActiveSet === "function"
+      ? GEAR.getPrimaryActiveSet(equipped)
+      : null;
 
     const moodCls = mood === "roar" ? "is-roaring" : mood === "jump" ? "is-jumping" : "";
     const backPlace = backItem ? solveGearPlacement(dino, backItem) : null;
@@ -880,6 +885,9 @@ window.DINO_DATA = (function () {
     const imgFilterStyle = unlocked && isVariant
       ? `style="filter:${dino.variant.filter} drop-shadow(0 8px 14px rgba(0, 0, 0, 0.48))"`
       : "";
+    const stageSetStyle = activeSet
+      ? `style="--set-col:${activeSet.color};--set-glow:${activeSet.glow || "rgba(251,191,36,0.5)"}"`
+      : "";
 
     const renderBackSub = (item, place) =>
       item && item.backSprite && place
@@ -887,7 +895,7 @@ window.DINO_DATA = (function () {
         : "";
 
     return `
-      <div class="sd-sprite-stage ${unlocked ? "unlocked" : "locked"} ${stageItem ? "has-stage" : ""} ${unlocked && isVariant ? "is-variant" : ""} ${moodCls}">
+      <div class="sd-sprite-stage ${unlocked ? "unlocked" : "locked"} ${stageItem ? "has-stage" : ""} ${petItem ? "has-pet" : ""} ${activeSet ? "has-set" : ""} ${unlocked && isVariant ? "is-variant" : ""} ${moodCls}" ${stageSetStyle}>
         ${stageItem ? `<div class="sd-stage-bg" style="background-image:url('${stageItem.sprite}')"></div><div class="sd-stage-vignette"></div>` : ""}
         ${auraItem ? `<svg class="sd-sprite-aura" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>${GEAR.AURA_DEFS}</defs>${auraItem.svg}</svg>` : ""}
         <div class="sd-sprite-shadow"></div>
@@ -904,11 +912,15 @@ window.DINO_DATA = (function () {
           ${faceItem ? `<div class="sd-sprite-gear gear-face" style="${facePlace.style}">${renderGearPiece(faceItem)}</div>` : ""}
           ${headItem && !headItem.underFace ? `<div class="sd-sprite-gear gear-head" style="${headPlace.style}">${renderGearPiece(headItem)}</div>` : ""}
         </div>
-        ${unlocked && isVariant ? `
+        ${unlocked && petItem && petItem.sprite ? `
+          <div class="sd-sprite-pet" style="--pet-glow:${petItem.glow || "rgba(251,191,36,0.55)"}">
+            <img class="sd-pet-img" src="${petItem.sprite}" alt="${petItem.name}" decoding="async" />
+          </div>` : ""}
+        ${unlocked && (isVariant || activeSet) ? `
           <svg class="sd-shiny-sparkles" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <path class="sd-spark s1" d="M36 46 L39 37 L42 46 L51 49 L42 52 L39 61 L36 52 L27 49 Z" fill="${dino.variant.color || "#fef08a"}"/>
+            <path class="sd-spark s1" d="M36 46 L39 37 L42 46 L51 49 L42 52 L39 61 L36 52 L27 49 Z" fill="${activeSet ? activeSet.color : (dino.variant.color || "#fef08a")}"/>
             <path class="sd-spark s2" d="M164 42 L166.5 34 L169 42 L177 44.5 L169 47 L166.5 55 L164 47 L156 44.5 Z" fill="#fef08a"/>
-            <path class="sd-spark s3" d="M160 144 L162 138 L164 144 L170 146 L164 148 L162 154 L160 148 L154 146 Z" fill="${dino.variant.color || "#38bdf8"}"/>
+            <path class="sd-spark s3" d="M160 144 L162 138 L164 144 L170 146 L164 148 L162 154 L160 148 L154 146 Z" fill="${activeSet ? activeSet.color : (dino.variant.color || "#38bdf8")}"/>
           </svg>` : ""}
         ${unlocked ? `
           <svg class="sd-sprite-roar-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">

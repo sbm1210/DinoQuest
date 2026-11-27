@@ -2,7 +2,7 @@
    DINO QUEST · Offline PWA Service Worker (Cache-First with Background Update)
    ============================================================================ */
 
-const CACHE_NAME = "dinoquest-cache-v53";
+const CACHE_NAME = "dinoquest-cache-v54";
 const PRECACHE_ASSETS = [
   "./",
   "./index.html",
@@ -10,12 +10,18 @@ const PRECACHE_ASSETS = [
   "./icon.svg",
   "./icon-180.png",
   "./icon-512.png",
-  "./styles.css?v=53",
-  "./gear.js?v=53",
-  "./dinos.js?v=53",
-  "./park.js?v=53",
-  "./sound.js?v=53",
-  "./app.js?v=53",
+  "./styles.css?v=54",
+  "./gear.js?v=54",
+  "./dinos.js?v=54",
+  "./park.js?v=54",
+  "./sound.js?v=54",
+  "./app.js?v=54",
+  "./assets/sprites/pets/pet_ptero.png",
+  "./assets/sprites/pets/pet_egg.png",
+  "./assets/sprites/pets/pet_drone.png",
+  "./assets/sprites/pets/pet_flame.png",
+  "./assets/sprites/pets/pet_star.png",
+  "./assets/sprites/pets/pet_dragon.png",
   "./assets/sprites/park/park_diorama.jpg",
   "./assets/sprites/fossils/fossil_trex_bp.png?v=33",
   "./assets/sprites/fossils/fossil_trex_head.png?v=33",
